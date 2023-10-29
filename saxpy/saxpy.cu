@@ -75,6 +75,9 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     //
     // https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
     //
+    cudaMalloc(&device_x, totalBytes);
+    cudaMalloc(&device_y, totalBytes);
+    cudaMalloc(&device_result, totalBytes);
         
     // start timing after allocation of device memory
     double startTime = CycleTimer::currentSeconds();
@@ -82,14 +85,10 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     //
     // CS149 TODO: copy input arrays to the GPU using cudaMemcpy
     //
-    cudaMalloc(&device_x, totalBytes);
-    cudaMalloc(&device_y, totalBytes);
-    cudaMalloc(&device_result, totalBytes);
 
     cudaMemcpy(device_x, xarray, totalBytes, cudaMemcpyHostToDevice);
     cudaMemcpy(device_y, yarray, totalBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_result, resultarray, totalBytes, cudaMemcpyHostToDevice);
-    
+
     double startTimeKernel = CycleTimer::currentSeconds();
    
     // run CUDA kernel. (notice the <<< >>> brackets indicating a CUDA
@@ -101,8 +100,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     //
     cudaDeviceSynchronize();
     double endTimeKernel = CycleTimer::currentSeconds();
-    cudaMemcpy(xarray, device_x, totalBytes, cudaMemcpyDeviceToHost);
-    cudaMemcpy(yarray, device_y, totalBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(resultarray, device_result, totalBytes, cudaMemcpyDeviceToHost);
     // end timing after result has been copied back into host memory
     double endTime = CycleTimer::currentSeconds();
 
@@ -114,7 +112,8 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
 
     double overallDuration = endTime - startTime;
     printf("Effective BW by CUDA saxpy: %.3f ms\t\t[%.3f GB/s]\n", 1000.f * overallDuration, GBPerSec(totalBytes, overallDuration));
-
+    double kernelDuration = endTimeKernel - startTimeKernel;
+    printf("Kernel runtime is %f\n", kernelDuration);
     //
     // CS149 TODO: free memory buffers on the GPU using cudaFree
     //
