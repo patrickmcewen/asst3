@@ -44,19 +44,19 @@ static inline int nextPow2(int n) {
 // places it in result
 
 __global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
+    int index = two_dplus1 * threadIdx;
     result[index+two_dplus1-1] += result[index+two_d-1];
 }
 
 __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
+    int index = two_dplus1 * threadIdx;
     int t = result[index + two_dplus1 - 1];
     result[index + two_d - 1] = result[index + two_dplus1 - 1];
     result[index + two_dplus1 - 1] += t;
 }
 
 __global__ void zero_last_elem(int* result, int N) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int index = threadIdx;
     if (index == 0) {
         result[N-1] = 0;
     }
