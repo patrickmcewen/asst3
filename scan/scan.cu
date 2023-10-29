@@ -87,6 +87,7 @@ void exclusive_scan(int* input, int N, int* result)
         downsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
     }
     printf("finished downsweep\n");
+
 }
 
 
@@ -122,6 +123,10 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     // students are free to implement an in-place scan on the result
     // vector if desired.  If you do this, you will need to keep this
     // in mind when calling exclusive_scan from find_repeats.
+    for (int i = 0; i < N; i++) {
+        printf("%d ", inarray[i]);
+    }
+    printf("\n");
     cudaMemcpy(device_input, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(device_result, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -134,6 +139,10 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     double endTime = CycleTimer::currentSeconds();
        
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int), cudaMemcpyDeviceToHost);
+    for (int i = 0; i < N; i++) {
+        printf("%d ", resultarray[i]);
+    }
+    printf("\n");
 
     double overallDuration = endTime - startTime;
     return overallDuration; 
