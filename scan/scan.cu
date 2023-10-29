@@ -55,7 +55,7 @@ __global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
 __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int t = result[index + two_dplus1 - 1];
-    result[index + two_d - 1] = output[index + two_dplus1 - 1];
+    result[index + two_d - 1] = result[index + two_dplus1 - 1];
     result[index + two_dplus1 - 1] += t;
 }
 
