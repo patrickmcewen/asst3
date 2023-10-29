@@ -56,7 +56,10 @@ __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) 
 }
 
 __global__ void zero_last_elem(int* result, int N) {
-    result[N-1] = 0;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index == 0) {
+        result[N-1] = 0;
+    }
 }
 
 void exclusive_scan(int* input, int N, int* result)
