@@ -43,6 +43,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     // must read both input arrays (xarray and yarray) and write to
     // output array (resultarray)
     int totalBytes = sizeof(float) * 3 * N;
+    int arrBytes = sizeof(float) * N;
 
     // compute number of blocks and threads per block.  In this
     // application we've hardcoded thread blocks to contain 512 CUDA
@@ -75,9 +76,9 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     //
     // https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
     //
-    cudaMalloc(&device_x, totalBytes);
-    cudaMalloc(&device_y, totalBytes);
-    cudaMalloc(&device_result, totalBytes);
+    cudaMalloc(&device_x, arrBytes);
+    cudaMalloc(&device_y, arrBytes);
+    cudaMalloc(&device_result, arrBytes);
     printf("malloced cuda memory\n");
         
     // start timing after allocation of device memory
@@ -87,9 +88,9 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     // CS149 TODO: copy input arrays to the GPU using cudaMemcpy
     //
 
-    cudaMemcpy(device_x, xarray, totalBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_y, yarray, totalBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_result, resultarray, totalBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_x, xarray, arrBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_y, yarray, arrBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_result, resultarray, arrBytes, cudaMemcpyHostToDevice);
     printf("copied host memory into device\n");
 
     double startTimeKernel = CycleTimer::currentSeconds();
@@ -105,7 +106,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     cudaDeviceSynchronize();
 
     double endTimeKernel = CycleTimer::currentSeconds();
-    cudaMemcpy(resultarray, device_result, totalBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(resultarray, device_result, arrBytes, cudaMemcpyDeviceToHost);
     printf("copied memory back into host\n");
     // end timing after result has been copied back into host memory
     double endTime = CycleTimer::currentSeconds();
