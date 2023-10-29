@@ -45,11 +45,7 @@ static inline int nextPow2(int n) {
 
 __global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index == N-1) {
-        result[index] = 0;
-    } else {
-        result[index+two_dplus1-1] += result[index+two_d-1];
-    }
+    result[index+two_dplus1-1] += result[index+two_d-1];
 }
 
 __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
@@ -57,6 +53,10 @@ __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) 
     int t = result[index + two_dplus1 - 1];
     result[index + two_d - 1] = result[index + two_dplus1 - 1];
     result[index + two_dplus1 - 1] += t;
+}
+
+__global__ void zero_last_elem(int* result, int N) {
+    result[N-1] = 0;
 }
 
 void exclusive_scan(int* input, int N, int* result)
@@ -79,6 +79,7 @@ void exclusive_scan(int* input, int N, int* result)
         int numThreads = N / two_dplus1;
         upsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
     }
+    zero_last_elem<<<1, 1>>>(result, N);
     printf("finished upsweep, starting downsweep\n");
     for (int two_d = N/2; two_d >= 1; two_d /= 2) {
         int two_dplus1 = 2*two_d;
