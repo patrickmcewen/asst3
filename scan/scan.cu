@@ -44,19 +44,19 @@ static inline int nextPow2(int n) {
 // places it in result
 
 __global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * threadIdx;
+    int index = two_dplus1 * threadIdx.x;
     result[index+two_dplus1-1] += result[index+two_d-1];
 }
 
 __global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * threadIdx;
+    int index = two_dplus1 * threadIdx.x;
     int t = result[index + two_dplus1 - 1];
     result[index + two_d - 1] = result[index + two_dplus1 - 1];
     result[index + two_dplus1 - 1] += t;
 }
 
 __global__ void zero_last_elem(int* result, int N) {
-    int index = threadIdx;
+    int index = threadIdx.x;
     if (index == 0) {
         result[N-1] = 0;
     }
@@ -80,7 +80,9 @@ void exclusive_scan(int* input, int N, int* result)
     for (int two_d = 1; two_d <= N/2; two_d *= 2) {
         int two_dplus1 = 2*two_d;
         int numThreads = N / two_dplus1;
-        upsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
+        dim3 numBlocks(1);
+        dim3 threadsPerBlock(numThreads);
+        upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
     cudaDeviceSynchronize();
     zero_last_elem<<<1, 1>>>(result, N);
@@ -89,7 +91,9 @@ void exclusive_scan(int* input, int N, int* result)
     for (int two_d = N/2; two_d >= 1; two_d /= 2) {
         int two_dplus1 = 2*two_d;
         int numThreads = N / two_dplus1;
-        downsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
+        dim3 numBlocks(1);
+        dim3 threadsPerBlock(numThreads);
+        downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
     printf("finished downsweep\n");
 
