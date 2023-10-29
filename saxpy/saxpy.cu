@@ -85,9 +85,12 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     cudaMalloc(&device_x, totalBytes);
     cudaMalloc(&device_y, totalBytes);
     cudaMalloc(&device_result, totalBytes);
+
     cudaMemcpy(device_x, xarray, totalBytes, cudaMemcpyHostToDevice);
     cudaMemcpy(device_y, yarray, totalBytes, cudaMemcpyHostToDevice);
     cudaMemcpy(device_result, resultarray, totalBytes, cudaMemcpyHostToDevice);
+    
+    double startTimeKernel = CycleTimer::currentSeconds();
    
     // run CUDA kernel. (notice the <<< >>> brackets indicating a CUDA
     // kernel launch) Execution on the GPU occurs here.
@@ -97,6 +100,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     // CS149 TODO: copy result from GPU back to CPU using cudaMemcpy
     //
     cudaDeviceSynchronize();
+    double endTimeKernel = CycleTimer::currentSeconds();
     cudaMemcpy(xarray, device_x, totalBytes, cudaMemcpyDeviceToHost);
     cudaMemcpy(yarray, device_y, totalBytes, cudaMemcpyDeviceToHost);
     // end timing after result has been copied back into host memory
@@ -114,6 +118,9 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     //
     // CS149 TODO: free memory buffers on the GPU using cudaFree
     //
+    cudaFree(device_x);
+    cudaFree(device_y);
+    cudaFree(device_result);
     
 }
 
