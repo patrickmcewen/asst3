@@ -79,7 +79,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     cudaMalloc(&device_x, arrBytes);
     cudaMalloc(&device_y, arrBytes);
     cudaMalloc(&device_result, arrBytes);
-    printf("malloced cuda memory\n");
+    //printf("malloced cuda memory\n");
         
     // start timing after allocation of device memory
     double startTime = CycleTimer::currentSeconds();
@@ -91,7 +91,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     cudaMemcpy(device_x, xarray, arrBytes, cudaMemcpyHostToDevice);
     cudaMemcpy(device_y, yarray, arrBytes, cudaMemcpyHostToDevice);
     cudaMemcpy(device_result, resultarray, arrBytes, cudaMemcpyHostToDevice);
-    printf("copied host memory into device\n");
+    //printf("copied host memory into device\n");
 
     double startTimeKernel = CycleTimer::currentSeconds();
    
@@ -99,7 +99,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
     // kernel launch) Execution on the GPU occurs here.
     saxpy_kernel<<<blocks, threadsPerBlock>>>(N, alpha, device_x, device_y, device_result);
 
-    printf("finished running kernel\n");
+    //printf("finished running kernel\n");
     //
     // CS149 TODO: copy result from GPU back to CPU using cudaMemcpy
     //
@@ -107,7 +107,7 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultar
 
     double endTimeKernel = CycleTimer::currentSeconds();
     cudaMemcpy(resultarray, device_result, arrBytes, cudaMemcpyDeviceToHost);
-    printf("copied memory back into host\n");
+    //printf("copied memory back into host\n");
     // end timing after result has been copied back into host memory
     double endTime = CycleTimer::currentSeconds();
 
