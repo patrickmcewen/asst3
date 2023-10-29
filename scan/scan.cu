@@ -42,6 +42,23 @@ static inline int nextPow2(int n) {
 // Also, as per the comments in cudaScan(), you can implement an
 // "in-place" scan, since the timing harness makes a copy of input and
 // places it in result
+
+__global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index == N-1) {
+        result[index] = 0;
+    } else {
+        result[index+two_dplus1-1] += result[index+two_d-1];
+    }
+}
+
+__global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int t = result[index + two_dplus1 - 1];
+    result[index + two_d - 1] = output[index + two_dplus1 - 1];
+    result[index + two_dplus1 - 1] += t;
+}
+
 void exclusive_scan(int* input, int N, int* result)
 {
 
@@ -53,8 +70,22 @@ void exclusive_scan(int* input, int N, int* result)
     // on the CPU.  Your implementation will need to make multiple calls
     // to CUDA kernel functions (that you must write) to implement the
     // scan.
+    int arrSize = sizeof(float) * N;
 
-
+    cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
+    printf("copied memory from input to result\n");
+    for (int two_d = 1; two_d <= N/2; two_d *= 2) {
+        int two_dplus1 = 2*two_d;
+        int numThreads = N / two_dplus1;
+        upsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
+    }
+    printf("finished upsweep, starting downsweep\n");
+    for (int two_d = N/2; two_d >= 1; two_d /= 2) {
+        int two_dplus1 = 2*two_d;
+        int numThreads = N / two_dplus1;
+        downsweep_kernel<<<1, numThreads>>>(result, N, two_dplus1, two_d);
+    }
+    printf("finished downsweep\n");
 }
 
 
