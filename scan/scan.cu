@@ -84,6 +84,7 @@ void exclusive_scan(int* input, int N, int* result)
         dim3 threadsPerBlock(numThreads);
         upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
+    return;
     cudaDeviceSynchronize();
     zero_last_elem<<<1, 1>>>(result, N);
     cudaDeviceSynchronize();
@@ -132,7 +133,7 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     // students are free to implement an in-place scan on the result
     // vector if desired.  If you do this, you will need to keep this
     // in mind when calling exclusive_scan from find_repeats.
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < rounded_length; i++) {
         printf("%d ", inarray[i]);
     }
     printf("\n");
@@ -148,7 +149,7 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     double endTime = CycleTimer::currentSeconds();
        
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int), cudaMemcpyDeviceToHost);
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < rounded_length; i++) {
         printf("%d ", resultarray[i]);
     }
     printf("\n");
