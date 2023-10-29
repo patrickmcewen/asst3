@@ -77,7 +77,7 @@ void exclusive_scan(int* input, int N, int* result)
     int arrSize = sizeof(float) * N;
 
     cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
-    printf("copied memory from input to result\n");
+    //printf("copied memory from input to result\n");
     for (int two_d = 1; two_d <= N/2; two_d *= 2) {
         int two_dplus1 = 2*two_d;
         int numThreads = N / two_dplus1;
@@ -85,9 +85,9 @@ void exclusive_scan(int* input, int N, int* result)
         dim3 threadsPerBlock(numThreads);
         upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
     zero_last_elem<<<1, 1>>>(result, N);
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
     printf("finished upsweep, starting downsweep\n");
     for (int two_d = N/2; two_d >= 1; two_d /= 2) {
         int two_dplus1 = 2*two_d;
@@ -133,10 +133,10 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     // students are free to implement an in-place scan on the result
     // vector if desired.  If you do this, you will need to keep this
     // in mind when calling exclusive_scan from find_repeats.
-    for (int i = 0; i < rounded_length; i++) {
+    /*for (int i = 0; i < rounded_length; i++) {
         printf("%d ", inarray[i]);
     }
-    printf("\n");
+    printf("\n");*/
     cudaMemcpy(device_input, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(device_result, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -149,10 +149,10 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     double endTime = CycleTimer::currentSeconds();
        
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int), cudaMemcpyDeviceToHost);
-    for (int i = 0; i < rounded_length; i++) {
+    /*for (int i = 0; i < rounded_length; i++) {
         printf("%d ", resultarray[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     double overallDuration = endTime - startTime;
     return overallDuration; 
