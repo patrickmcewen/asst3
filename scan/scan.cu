@@ -74,6 +74,7 @@ void exclusive_scan(int* input, int N, int* result)
     // on the CPU.  Your implementation will need to make multiple calls
     // to CUDA kernel functions (that you must write) to implement the
     // scan.
+    N = nextPow2(N);
     int arrSize = sizeof(float) * N;
 
     cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
@@ -133,26 +134,18 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     // students are free to implement an in-place scan on the result
     // vector if desired.  If you do this, you will need to keep this
     // in mind when calling exclusive_scan from find_repeats.
-    /*for (int i = 0; i < rounded_length; i++) {
-        printf("%d ", inarray[i]);
-    }
-    printf("\n");*/
     cudaMemcpy(device_input, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(device_result, inarray, (end - inarray) * sizeof(int), cudaMemcpyHostToDevice);
 
     double startTime = CycleTimer::currentSeconds();
 
-    exclusive_scan(device_input, rounded_length, device_result);
+    exclusive_scan(device_input, N, device_result);
 
     // Wait for completion
     cudaDeviceSynchronize();
     double endTime = CycleTimer::currentSeconds();
        
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int), cudaMemcpyDeviceToHost);
-    /*for (int i = 0; i < rounded_length; i++) {
-        printf("%d ", resultarray[i]);
-    }
-    printf("\n");*/
 
     double overallDuration = endTime - startTime;
     return overallDuration; 
