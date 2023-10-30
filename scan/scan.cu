@@ -206,6 +206,10 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
     }
 }
 
+__global__ int get_total_pairs(int* input, int length) {
+    return input[length-1];
+}
+
 // find_repeats --
 //
 // Given an array of integers `device_input`, returns an array of all
@@ -237,13 +241,14 @@ int find_repeats(int* device_input, int length, int* device_output) {
     cudaDeviceSynchronize();
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
+    int total_pairs = get_total_pairs<<<1, 1>>>(flag_scan, length);
     get_repeats_final<<<1, length>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
     cudaFree(flags);
     cudaFree(flag_scan);
 
 
-    return 0; 
+    return total_pairs; 
 }
 
 
