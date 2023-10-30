@@ -236,19 +236,26 @@ int find_repeats(int* device_input, int length, int* device_output) {
     int* flag_scan = nullptr;
     cudaMalloc(&flags, arrSize);
     cudaMalloc(&flag_scan, arrSize);
+
     dim3 numBlocks((int)std::ceil((double)length / THREADS_PER_BLOCK));
     dim3 threadsPerBlock((int)std::ceil((double)length / numBlocks.x));
+
     mark_repeats<<<numBlocks, threadsPerBlock>>>(device_input, flags, length);
     cudaDeviceSynchronize();
+
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
+
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int));
     get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs);
+    cudaDeviceSynchronize();
     int* total_pairs_host = (int*)malloc(sizeof(int));
     cudaMemcpy(total_pairs_host, total_pairs, sizeof(int), cudaMemcpyDeviceToHost);
+
     get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
+
     cudaFree(flags);
     cudaFree(flag_scan);
 
