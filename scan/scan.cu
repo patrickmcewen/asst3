@@ -14,6 +14,7 @@
 
 #define THREADS_PER_BLOCK 256
 
+int find_repeats(int* device_input, int length, int* device_output);
 
 // helper function to round an integer up to the next power of 2
 static inline int nextPow2(int n) {
@@ -248,7 +249,7 @@ int find_repeats(int* device_input, int length, int* device_output) {
     cudaDeviceSynchronize();
 
     int* host_flags = (int*)malloc(arrSize);
-    cudaMemcpy(host_flags, flags, arrSize, cudaMemCpyDeviceToHost);
+    cudaMemcpy(host_flags, flags, arrSize, cudaMemcpyDeviceToHost);
     for (int i = 0; i < length; i++) {
         printf("%d ", host_flags[i]);
     }
