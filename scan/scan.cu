@@ -147,8 +147,8 @@ double cudaScan(int* inarray, int* end, int* resultarray)
 
     double startTime = CycleTimer::currentSeconds();
 
-    int result = find_repeats(device_input, N, device_result);
-    printf("result: %d\n", result);
+    //int result = find_repeats(device_input, N, device_result);
+    //printf("result: %d\n", result);
     exclusive_scan(device_input, N, device_result);
 
     // Wait for completion
@@ -245,27 +245,27 @@ int find_repeats(int* device_input, int length, int* device_output) {
 
     dim3 numBlocks((int)std::ceil((double)length / THREADS_PER_BLOCK));
     dim3 threadsPerBlock((int)std::ceil((double)length / numBlocks.x));
-    printf("%d blocks with %d threads per block\n", numBlocks.x, threadsPerBlock.x);
+    //printf("%d blocks with %d threads per block\n", numBlocks.x, threadsPerBlock.x);
 
     mark_repeats<<<numBlocks, threadsPerBlock>>>(device_input, flags, length);
     cudaDeviceSynchronize();
 
-    int* host_flags = (int*)malloc(arrSize);
+    /*int* host_flags = (int*)malloc(arrSize);
     cudaMemcpy(host_flags, flags, arrSize, cudaMemcpyDeviceToHost);
     for (int i = 0; i < length; i++) {
         printf("%d ", host_flags[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
 
-    int* host_flags_scan = (int*)malloc(arrSize);
+    /*int* host_flags_scan = (int*)malloc(arrSize);
     cudaMemcpy(host_flags_scan, flag_scan, arrSize, cudaMemcpyDeviceToHost);
     for (int i = 0; i < length; i++) {
         printf("%d ", host_flags_scan[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int));
@@ -278,12 +278,12 @@ int find_repeats(int* device_input, int length, int* device_output) {
     get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
 
-    int* host_output = (int*)malloc(arrSize);
+    /*int* host_output = (int*)malloc(arrSize);
     cudaMemcpy(host_output, device_output, arrSize, cudaMemcpyDeviceToHost);
     for (int i = 0; i < length; i++) {
         printf("%d ", host_output[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     cudaFree(flags);
     cudaFree(flag_scan);
