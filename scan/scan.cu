@@ -235,7 +235,8 @@ int find_repeats(int* device_input, int length, int* device_output) {
     // must ensure that the results of find_repeats are correct given
     // the actual array length.
 
-    int arrSize = length * sizeof(int);
+    length_2 = nextPow2(length);
+    int arrSize = length_2 * sizeof(int);
 
     int* flags = nullptr;
     int* flag_scan = nullptr;
