@@ -194,8 +194,8 @@ double cudaScanThrust(int* inarray, int* end, int* resultarray) {
 
 __global__ void mark_repeats(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < length - 1 && (input[index] == input[index + 1])) {
-        output[index] = 1;
+    if (index < length - 1) {
+        output[index] = input[index] == input[index + 1];
     }
 }
 
