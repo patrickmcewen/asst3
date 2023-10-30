@@ -147,8 +147,9 @@ double cudaScan(int* inarray, int* end, int* resultarray)
 
     double startTime = CycleTimer::currentSeconds();
 
+    // code to test find_repeats on small inputs
     //int result = find_repeats(device_input, N, device_result);
-    //printf("result: %d\n", result);
+    //printf("result: %d\n", result); 
     exclusive_scan(device_input, N, device_result);
 
     // Wait for completion
