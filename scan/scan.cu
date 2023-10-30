@@ -206,8 +206,8 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
     }
 }
 
-__global__ int get_total_pairs(int* input, int length) {
-    return input[length-1];
+__global__ void get_total_pairs(int* input, int length, int* total_pairs) {
+    total_pairs[0] = input[length-1];
 }
 
 // find_repeats --
@@ -241,14 +241,18 @@ int find_repeats(int* device_input, int length, int* device_output) {
     cudaDeviceSynchronize();
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
-    int total_pairs = get_total_pairs<<<1, 1>>>(flag_scan, length);
+    int* total_pairs = nullptr;
+    cudaMalloc(&total_pairs, sizeof(int));
+    get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs);
+    int* total_pairs_host = (int*)malloc(sizeof(int));
+    cudaMemcpy(total_pairs_host, total_pairs, sizeof(int), cudaMemcpyDeviceToHost);
     get_repeats_final<<<1, length>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
     cudaFree(flags);
     cudaFree(flag_scan);
 
 
-    return total_pairs; 
+    return *total_pairs_host; 
 }
 
 
