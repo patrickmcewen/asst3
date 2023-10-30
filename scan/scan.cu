@@ -83,7 +83,7 @@ void exclusive_scan(int* input, int N, int* result)
         int two_dplus1 = 2*two_d;
         int numThreads = N / two_dplus1;
         dim3 numBlocks(32);
-        dim3 threadsPerBlock(numThreads / numBlocks);
+        dim3 threadsPerBlock(numThreads / numBlocks.x);
         upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
     //cudaDeviceSynchronize();
@@ -94,7 +94,7 @@ void exclusive_scan(int* input, int N, int* result)
         int two_dplus1 = 2*two_d;
         int numThreads = N / two_dplus1;
         dim3 numBlocks(32);
-        dim3 threadsPerBlock(numThreads / numBlocks);
+        dim3 threadsPerBlock(numThreads / numBlocks.x);
         downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
     }
     printf("finished downsweep\n");
