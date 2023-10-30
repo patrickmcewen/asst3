@@ -185,6 +185,20 @@ double cudaScanThrust(int* inarray, int* end, int* resultarray) {
 }
 
 
+__global__ void mark_repeats(int* input, int* output, int length) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < length - 1 && (input[index] == input[index + 1])) {
+        output[index] = 1;
+    }
+}
+
+__global__ void get_repeats_final(int* input, int* output, int length) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < length - 1 && (input[index] < input[index+1])) {
+        output[input[index]] = index;
+    }
+}
+
 // find_repeats --
 //
 // Given an array of integers `device_input`, returns an array of all
@@ -204,6 +218,23 @@ int find_repeats(int* device_input, int length, int* device_output) {
     // exclusive_scan function with them. However, your implementation
     // must ensure that the results of find_repeats are correct given
     // the actual array length.
+
+    int arrSize = length * sizeof(int);
+
+    int* flags = nullptr;
+    int* flag_scan = nullptr;
+    cudaMalloc(&flags, arrSize);
+    cudaMalloc(&flag_scan, arrSize);
+
+    mark_repeats<<<1, length>>>(device_input, flags, length);
+    cudaDeviceSynchronize();
+    exclusive_scan<<<1, length>>>(flags, flag_scan, length);
+    cudaDeviceSynchronize();
+    get_repeats_final<<<1, length>>>(flag_scan, device_output, length);
+    cudaDeviceSynchronize();
+    cudaFree(flags);
+    cudaFree(flag_scan);
+
 
     return 0; 
 }
