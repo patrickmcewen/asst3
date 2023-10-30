@@ -228,7 +228,7 @@ int find_repeats(int* device_input, int length, int* device_output) {
 
     mark_repeats<<<1, length>>>(device_input, flags, length);
     cudaDeviceSynchronize();
-    exclusive_scan<<<1, length>>>(flags, flag_scan, length);
+    exclusive_scan<<<1, length>>>(flags, length, flag_scan);
     cudaDeviceSynchronize();
     get_repeats_final<<<1, length>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
