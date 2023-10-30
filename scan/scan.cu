@@ -147,7 +147,8 @@ double cudaScan(int* inarray, int* end, int* resultarray)
 
     double startTime = CycleTimer::currentSeconds();
 
-    find_repeats(device_input, N, device_result);
+    int result = find_repeats(device_input, N, device_result);
+    printf("result: %d\n", result);
     exclusive_scan(device_input, N, device_result);
 
     // Wait for completion
@@ -258,6 +259,13 @@ int find_repeats(int* device_input, int length, int* device_output) {
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
 
+    int* host_flags_scan = (int*)malloc(arrSize);
+    cudaMemcpy(host_flags_scan, flag_scan, arrSize, cudaMemcpyDeviceToHost);
+    for (int i = 0; i < length; i++) {
+        printf("%d ", host_flags_scan[i]);
+    }
+    printf("\n");
+
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int));
     get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs);
@@ -268,6 +276,13 @@ int find_repeats(int* device_input, int length, int* device_output) {
 
     get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
+
+    int* host_output = (int*)malloc(arrSize);
+    cudaMemcpy(host_output, device_output, arrSize, cudaMemcpyDeviceToHost);
+    for (int i = 0; i < length; i++) {
+        printf("%d ", host_output[i]);
+    }
+    printf("\n");
 
     cudaFree(flags);
     cudaFree(flag_scan);
