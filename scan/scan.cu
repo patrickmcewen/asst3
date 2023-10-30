@@ -239,6 +239,7 @@ int find_repeats(int* device_input, int length, int* device_output) {
 
     dim3 numBlocks((int)std::ceil((double)length / THREADS_PER_BLOCK));
     dim3 threadsPerBlock((int)std::ceil((double)length / numBlocks.x));
+    printf("%d blocks with %d threads per block\n", numBlocks.x, threadsPerBlock.x);
 
     mark_repeats<<<numBlocks, threadsPerBlock>>>(device_input, flags, length);
     cudaDeviceSynchronize();
