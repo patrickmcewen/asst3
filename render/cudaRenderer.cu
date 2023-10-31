@@ -666,7 +666,7 @@ CudaRenderer::advanceAnimation() {
 
 void
 CudaRenderer::render() {
-
+    //incorrect implementation
     // 256 threads per block is a healthy number
     /*dim3 blockDim(256, 1);
     dim3 gridDim((numCircles + blockDim.x - 1) / blockDim.x);
@@ -674,6 +674,7 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
+    // pixel parallel only
     dim3 blockDim(16, 16);
     dim3 gridDim((params.imageWidth + blockDim.x - 1) / blockDim.x, (params.imageHeight + blockDim.y - 1) / blockDim.y);
     printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
