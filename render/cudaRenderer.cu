@@ -486,7 +486,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
-    for (int i = 0; i < *total_pairs; i++) {
+    for (int i = 0; i < *(total_pairs + total_pairs_offset); i++) {
         int circle_ind = circles_per_block_start[i];
         // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
@@ -548,7 +548,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
     if (index >= cuConstRendererParams.pow2Circles)
         return;
     
-    int old_data = circles_per_block_start[index];
+    //int old_data = circles_per_block_start[index];
     
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
