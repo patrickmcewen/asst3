@@ -42,10 +42,12 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 int gridDim_x, gridDim_y; // initialized in setup
-int* gridDim_x_dev, gridDim_y_dev;
+int* gridDim_x_dev;
+int* gridDim_y_dev;
 int blockDim_x = 16;
 int blockDim_y = 16;
-int* blockDim_x_dev, blockDim_y_dev;
+int* blockDim_x_dev;
+int* blockDim_y_dev;
 
 int* circles_per_block; // flattened 2d array
 
@@ -488,8 +490,8 @@ __global__ void kernelBoundCircles() {
 
     int start_of_block_circles = index * cuConstRendererParams.numCircles; // offset into the circles_per_block array
 
-    dim3 blockDim(blockDim_x_dev, blockDim_y_dev);
-    dim3 gridDim(gridDim_x_dev, gridDim_y_dev);
+    dim3 blockDim(*blockDim_x_dev, *blockDim_y_dev);
+    dim3 gridDim(*gridDim_x_dev, *gridDim_y_dev);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
