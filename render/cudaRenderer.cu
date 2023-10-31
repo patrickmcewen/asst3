@@ -531,7 +531,7 @@ __global__ void kernelBoundCircles(int* circles_per_block, int pow2Circles) {
     }
 }
 
-__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int pow2Circles) {
+__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int pow2Circles, uint* prefixSumScratch) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (index > pow2Circles)
@@ -542,8 +542,6 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
     int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    uint* prefixSumScratch = nullptr;
-    cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
     printf("allocated memory for index %d\n", index);
 
     printf("circle start value: %d\n", circles_per_block_start[index]);
@@ -790,7 +788,9 @@ CudaRenderer::render() {
         for (int y = 0; y < params.gridDim_y; y++) {
             dim3 blockDimScan(256, 1);
             dim3 gridDimScan((pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles);
+            uint* prefixSumScratch = nullptr;
+            cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles, prefixSumScratch);
         }
     }
 
