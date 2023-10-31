@@ -526,9 +526,9 @@ __global__ void kernelBoundCircles() {
             int circles_per_block_index = (size_of_one_row * y) + (size_of_one_block * x) + circle_index;
 
             float boxL = x * cuConstRendererParams.blockDim_x;
-            float boxR = x * (cuConstRendererParams.blockDim_x + 1) - 1;
+            float boxR = x * (cuConstRendererParams.blockDim_x) + cuConstRendererParams.blockDim_x - 1;
             float boxT = y * cuConstRendererParams.blockDim_y;
-            float boxB = y * (cuConstRendererParams.blockDim_y + 1) - 1;
+            float boxB = y * (cuConstRendererParams.blockDim_y) + cuConstRendererParams.blockDim_y - 1;
             printf("top: %f, bottom: %f, left: %f, right: %f\n", boxT, boxB, boxL, boxR);
             printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
