@@ -789,7 +789,7 @@ CudaRenderer::render() {
         for (int y = 0; y < params.gridDim_y; y++) {
             dim3 blockDimScan(256, 1);
             dim3 gridDimScan((nextPow2(params.numCircles) + blockDimScan.x - 1) / blockDimScan.x);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y);
         }
     }
 
