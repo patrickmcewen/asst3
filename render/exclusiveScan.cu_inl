@@ -55,7 +55,6 @@ warpScanInclusive(int threadIndex, uint idata, volatile uint *s_Data, uint size)
     // Note some of the calculations are obscure because they are optimized.
     // For example, (threadIndex & (size - 1)) computes threadIndex % size,
     // which works, assuming size is a power of 2.
-    printf("entering warp scan\n");
     uint pos = 2 * threadIndex - (threadIndex & (size - 1));
     s_Data[pos] = 0;
     pos += size;
