@@ -496,15 +496,13 @@ __global__ void kernelRenderPixels() {
 
 
 // for each circle, loop over all blocks and check if the circle is contained inside
-__global__ void kernelBoundCircles(int* circles_per_block) {
+__global__ void kernelBoundCircles(int* circles_per_block, int pow2Circles) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
         return;
 
     int index3 = 3 * circle_index;
-
-    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
     
     // read position and radius
     //printf("getting p and rad\n");
@@ -533,10 +531,8 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     }
 }
 
-__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
+__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int pow2Circles) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
     
     if (index > pow2Circles)
         return;
@@ -776,21 +772,22 @@ CudaRenderer::render() {
 
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
+    int pow2Circles = nextPow2(params.numCircles);
 
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
-    cudaMalloc(&circles_per_block, sizeof(int) * nextPow2(params.numCircles) * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
 
-    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block, pow2Circles);
 
     cudaCheckError(cudaDeviceSynchronize());
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             dim3 blockDimScan(256, 1);
-            dim3 gridDimScan((nextPow2(params.numCircles) + blockDimScan.x - 1) / blockDimScan.x);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y);
+            dim3 gridDimScan((pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles);
         }
     }
 
