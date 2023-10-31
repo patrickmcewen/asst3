@@ -560,14 +560,14 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < length - 1 && (input[index] < input[index+1])) {
         output[input[index]] = index;
-        printf("marked a repeat\n");
+        //printf("marked a repeat\n");
     }
 }
 
 __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
     total_pairs[0] = input[length-1];
-    if (total_pairs[0] > 0)
-        printf("total_pairs: %d\n", total_pairs[0]);
+    //if (total_pairs[0] > 0)
+        //printf("total_pairs: %d\n", total_pairs[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
