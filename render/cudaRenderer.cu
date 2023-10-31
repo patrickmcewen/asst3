@@ -42,6 +42,8 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 int gridDim_x, gridDim_y; // initialized in setup
+int blockDim_x = 16;
+int blockDim_y = 16;
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
@@ -581,8 +583,8 @@ CudaRenderer::setup() {
     params.radius = cudaDeviceRadius;
     params.imageData = cudaDeviceImageData;
 
-    gridDim_x = (params.imageWidth + blockDim.x - 1) / blockDim.x;
-    gridDim_y =  (params.imageHeight + blockDim.y - 1) / blockDim.y;
+    gridDim_x = (params.imageWidth + blockDim_x - 1) / blockDim_x;
+    gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
 
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
