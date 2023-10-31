@@ -484,6 +484,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     //int total_pairs_offset = (y * cuConstRendererParams.gridDim_x) + x;
     //int num_circles_in_block = *(total_pairs + total_pairs_offset);
     // dont launch kernel if num_circles_in_block = 0
+    printf("total pairs: %d", *total_pairs);
     for (int i = 0; i < *total_pairs; i++) {
         int circle_ind = circles_per_block_final[i];
         // read position and radius
@@ -891,6 +892,7 @@ CudaRenderer::render() {
             int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
 
             kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_start, total_pairs + total_pairs_offset, x, y);
+            cudaDeviceSynchronize();
         }
     }
     cudaDeviceSynchronize();
