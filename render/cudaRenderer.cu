@@ -744,9 +744,9 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
-    //dim3 blockDimCircles(256, 1);
-    //dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
-    //kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
+    dim3 blockDimCircles(256, 1);
+    dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
 
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
