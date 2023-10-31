@@ -480,8 +480,8 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         return;
     }
 
-    int total_pairs_offset = (blockIdx.y * params.gridDim_x) + blockIdx.x;
-    int circles_per_block_offset = (params.size_of_one_row * blockIdx.y) + (params.size_of_one_block * blockIdx.x);
+    int total_pairs_offset = (blockIdx.y * cuConstRendererParams.gridDim_x) + blockIdx.x;
+    int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
