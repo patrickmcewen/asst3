@@ -747,13 +747,15 @@ CudaRenderer::render() {
     cudaDeviceSynchronize();*/
 
     dim3 blockDimCircles(256, 1);
-    dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
+    dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
-    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block, sizeof(int) * params.numCircles * params.gridDim_x * params.gridDim_y);
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
+
+    for (int i = 0; i < params.numCircles)
 
 
     // pixel parallel only
