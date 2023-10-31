@@ -485,25 +485,6 @@ __global__ void kernelRenderPixels() {
     }
 }
 
-__global__ void boundCircles(float3 p, float rad, int circle_index) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y)
-        return;
-
-    int size_of_one_block = cuConstRendererParams.numCircles;
-    int size_of_one_row = cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x;
-
-    int circles_per_block_index = (size_of_one_row * y) + (size_of_one_block * x) + circle_index;
-
-    float boxL = x * cuConstRendererParams.blockDim_x;
-    float boxR = x * (cuConstRendererParams.blockDim_x + 1) - 1;
-    float boxT = y * cuConstRendererParams.blockDim_y;
-    float boxB = y * (cuConstRendererParams.blockDim_y + 1) - 1;
-
-    circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-}
-
 __global__ void kernelBoundCircles() {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -513,6 +494,7 @@ __global__ void kernelBoundCircles() {
     int index3 = 3 * circle_index;
     
     // read position and radius
+    printf("getting p and rad\n");
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
     float  rad = cuConstRendererParams.radius[circle_index];
 
