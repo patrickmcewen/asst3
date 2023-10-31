@@ -560,6 +560,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < length - 1 && (input[index] < input[index+1])) {
         output[input[index]] = index;
+        printf("marked a repeat\n");
     }
 }
 
