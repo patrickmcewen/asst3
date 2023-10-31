@@ -481,7 +481,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int num_circles_in_block = *(total_pairs + total_pairs_offset);
 
     for (int i = 0; i < num_circles_in_block; i++) {
-        circle_ind = circles_per_block_start[i];
+        int circle_ind = circles_per_block_start[i];
         // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
 
