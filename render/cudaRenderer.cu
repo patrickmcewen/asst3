@@ -831,8 +831,8 @@ CudaRenderer::render() {
                 printf("%d ", circles_per_block_start[j]);
             }
             printf("\n");
-            if (x > params.gridDim_x / 2 && y > params.gridDim_y) break;
         }
+        if (x > params.gridDim_x / 2) break;
     }
 
     cudaCheckError(cudaDeviceSynchronize());
