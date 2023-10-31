@@ -479,12 +479,12 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
     }
-    int total_pairs_offset = (y * cuConstRendererParams.gridDim_x) + x;
+    //int total_pairs_offset = (y * cuConstRendererParams.gridDim_x) + x;
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
-    int num_circles_in_block = *(total_pairs + total_pairs_offset);
+    //int num_circles_in_block = *(total_pairs + total_pairs_offset);
     // dont launch kernel if num_circles_in_block = 0
-    for (int i = 0; i < num_circles_in_block; i++) {
+    for (int i = 0; i < *total_pairs; i++) {
         int circle_ind = circles_per_block_start[i];
         // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
@@ -883,7 +883,12 @@ CudaRenderer::render() {
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
-    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            int total_pairs_offset = (y * params.gridDim_x) + x;
+            kernelRenderPixels<<<gridDimCircles, blockDimCircles>>>(circles_per_block_final, *(total_pairs + total_pairs_offset));
+        }
+    }
     cudaDeviceSynchronize();
 }
 
