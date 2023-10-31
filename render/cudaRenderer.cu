@@ -484,6 +484,8 @@ __global__ void kernelRenderPixels() {
     }
 }
 
+
+// for each circle, loop over all blocks and check if the circle is contained inside
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -493,7 +495,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     int index3 = 3 * circle_index;
     
     // read position and radius
-    printf("getting p and rad\n");
+    //printf("getting p and rad\n");
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
     float  rad = cuConstRendererParams.radius[circle_index];
 
@@ -748,6 +750,7 @@ CudaRenderer::render() {
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     cudaMalloc(&circles_per_block, sizeof(int) * numCircles * params.gridDim_x * params.gridDim_y);
+
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
