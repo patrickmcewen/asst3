@@ -68,6 +68,23 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 //#include "exclusiveScan.cu_inl"
 //#define SCAN_BLOCK_DIM   BLOCKSIZE
 
+#define DEBUG
+
+#ifdef DEBUG
+#define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
+inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr, "CUDA Error: %s at %s:%d\n", 
+        cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+#else
+#define cudaCheckError(ans) ans
+#endif
+
 
 // kernelClearImageSnowflake -- (CUDA device code)
 //
@@ -747,6 +764,9 @@ CudaRenderer::render() {
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
+
+    cudaCheckError(cudaDeviceSynchronize());
+
 
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
