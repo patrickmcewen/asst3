@@ -42,6 +42,7 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 int gridDim_x, gridDim_y; // initialized in setup
+int gridDim_x_dev, gridDim_y_dev;
 int blockDim_x = 16;
 int blockDim_y = 16;
 
@@ -484,7 +485,10 @@ __global__ void kernelBoundCircles() {
     short minY = static_cast<short>(imageHeight * (p.y - rad));
     short maxY = static_cast<short>(imageHeight * (p.y + rad)) + 1;
 
+    int start_of_block_circles = index * numCircles; // offset into the circles_per_block array
 
+    dim3 blockDim(blockDim_x, blockDim_y);
+    dim3 gridDim()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -611,6 +615,8 @@ CudaRenderer::setup() {
 
     gridDim_x = (params.imageWidth + blockDim_x - 1) / blockDim_x;
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
+    cudaMemcpy(&gridDim_x_dev, &gridDim_x, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(&gridDim_y_dev, &gridDim_y, sizeof(int), cudaMemcpyHostToDevice);
     
     cudaMalloc(&circles_per_block, sizeof(int) * numCircles * gridDim_x * gridDim_y);
 
