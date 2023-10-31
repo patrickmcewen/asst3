@@ -888,7 +888,7 @@ CudaRenderer::render() {
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int total_pairs_offset = (y * params.gridDim_x) + x;
-            kernelRenderPixels<<<gridDimCircles, blockDimCircles>>>(circles_per_block_final, *(total_pairs + total_pairs_offset), x, y);
+            kernelRenderPixels<<<gridDimCircles, blockDimCircles>>>(circles_per_block_final, total_pairs + total_pairs_offset, x, y);
         }
     }
     cudaDeviceSynchronize();
