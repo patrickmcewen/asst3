@@ -805,17 +805,6 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    //launch exclusive scans for each block
-    for (int x = 0; x < params.gridDim_x; x++) {
-        for (int y = 0; y < params.gridDim_y; y++) {
-            dim3 blockDimScan(256, 1);
-            dim3 gridDimScan((pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
-            uint* prefixSumScratch = nullptr;
-            cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles, prefixSumScratch);
-        }
-    }
-
     int size_of_one_block = pow2Circles;
     int size_of_one_row = pow2Circles * params.gridDim_x;
 
@@ -834,6 +823,18 @@ CudaRenderer::render() {
         }
         if (x > params.gridDim_x / 2) break;
     }
+
+    //launch exclusive scans for each block
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            dim3 blockDimScan(256, 1);
+            dim3 gridDimScan((pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
+            uint* prefixSumScratch = nullptr;
+            cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles, prefixSumScratch);
+        }
+    }
+
 
     cudaCheckError(cudaDeviceSynchronize());
 
