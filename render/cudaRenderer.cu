@@ -544,6 +544,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
 
     uint* prefixSumScratch = nullptr;
     cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
+    printf("allocated memory for index %d\n", index);
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
 
