@@ -547,6 +547,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
     printf("allocated memory for index %d\n", index);
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
+    printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
 }
 
