@@ -684,7 +684,7 @@ CudaRenderer::render() {
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDim.x);
 
     // pixel parallel only
-    dim3 blockDim(16, 16);
+    dim3 blockDim(blockDim_x, blockDim_y);
     dim3 gridDim(gridDim_x, gridDim_y);
     printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
