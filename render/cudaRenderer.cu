@@ -542,12 +542,10 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
     int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    printf("allocated memory for index %d\n", index);
-
-    printf("circle start value: %d\n", circles_per_block_start[index]);
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
-    printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
+    if (circles_per_block_start[index])
+        printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
 }
 
