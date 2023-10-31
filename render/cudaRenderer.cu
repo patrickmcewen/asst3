@@ -804,9 +804,6 @@ CudaRenderer::render() {
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
-    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-
 
     cudaCheckError(cudaDeviceSynchronize());
 
@@ -824,33 +821,13 @@ CudaRenderer::render() {
             cudaDeviceSynchronize();
         }
         //printf("\n");
-        if (x > params.gridDim_x / 2) break;
     }
 
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMemcpy(print_data2, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-    printf("copied data\n");
-    for (int x = 0; x < params.gridDim_x; x++) {
-        for (int y = 0; y < params.gridDim_y; y++) {
-            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
-            int* circles_per_block_start = print_data2 + circles_per_block_offset;
-            int* old_data_start = print_data + circles_per_block_offset;
-            printf("index %d and %d: ", x, y);
-            for (int j = 0; j < params.pow2Circles; j++) {
-                printf("%d ", circles_per_block_start[j]);
-            }
-            printf("\n");
-            printf("input data for that one: ");
-            for (int j = 0; j < params.pow2Circles; j++) {
-                printf("%d ", old_data_start[j]);
-            }
-            printf("\n");
-        }
-        if (x > params.gridDim_x / 2) break;
-    }
+    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
@@ -870,6 +847,28 @@ CudaRenderer::render() {
             int* circles_per_block_final_start = circles_per_block_final + circles_per_block_offset;
             get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, circles_per_block_final_start, params.pow2Circles);
         }
+    }
+
+    int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(print_data2, circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+    printf("copied data\n");
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
+            int* circles_per_block_start = print_data2 + circles_per_block_offset;
+            int* old_data_start = print_data + circles_per_block_offset;
+            printf("index %d and %d: ", x, y);
+            for (int j = 0; j < params.pow2Circles; j++) {
+                printf("%d ", circles_per_block_start[j]);
+            }
+            printf("\n");
+            printf("input data for that one: ");
+            for (int j = 0; j < params.pow2Circles; j++) {
+                printf("%d ", old_data_start[j]);
+            }
+            printf("\n");
+        }
+        if (x > params.gridDim_x / 2) break;
     }
 
     cudaCheckError(cudaDeviceSynchronize());
