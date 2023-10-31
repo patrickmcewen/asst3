@@ -64,6 +64,8 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 // file simpler and to seperate code that should not be modified
 #include "noiseCuda.cu_inl"
 #include "lookupColor.cu_inl"
+#include "circleBoxTest.cu_inl"
+#include "exclusiveScan.cu_inl"
 
 
 // kernelClearImageSnowflake -- (CUDA device code)
@@ -489,6 +491,8 @@ __global__ void kernelBoundCircles() {
 
     if (index >= cuConstRendererParams.numCircles)
         return;
+
+    int index3 = 3 * index;
     
     // read position and radius
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
