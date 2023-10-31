@@ -47,7 +47,6 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 
-int* circles_per_block; // flattened 2d array
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
@@ -485,7 +484,7 @@ __global__ void kernelRenderPixels() {
     }
 }
 
-__global__ void kernelBoundCircles() {
+__global__ void kernelBoundCircles(int* circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
@@ -650,7 +649,6 @@ CudaRenderer::setup() {
     params.gridDim_x = (params.imageWidth + params.blockDim_x - 1) / params.blockDim_x;
     params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
     
-    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * params.gridDim_x * params.gridDim_y);
 
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
@@ -748,7 +746,9 @@ CudaRenderer::render() {
 
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
-    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
+    int* circles_per_block = nullptr; // flattened 2d array
+    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * params.gridDim_x * params.gridDim_y);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
 
