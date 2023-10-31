@@ -437,8 +437,8 @@ __global__ void kernelRenderPixels() {
 
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
         // read position and radius
-        float3 p = *(float3*)(&cuConstRendererParams.position[i]);
-        float  rad = cuConstRendererParams.radius[index];
+        float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
+        float  rad = cuConstRendererParams.radius[i];
 
         // compute the bounding box of the circle. The bound is in integer
         // screen coordinates, so it's clamped to the edges of the screen.
@@ -458,10 +458,11 @@ __global__ void kernelRenderPixels() {
         float invWidth = 1.f / imageWidth;
         float invHeight = 1.f / imageHeight;
 
+        float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + screenMinX)]);
         // for all pixels in the bonding box
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                             invHeight * (static_cast<float>(y) + 0.5f));
-        shadePixel(index, pixelCenterNorm, p, imgPtr);
+        shadePixel(i, pixelCenterNorm, p, imgPtr);
     }
 }
 
@@ -682,7 +683,9 @@ CudaRenderer::render() {
     cudaDeviceSynchronize();*/
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((cuConstRendererParams.imageWidth + blockDim.x - 1) / blockDim.x, (cuConstRendererParams.imageHeight + blockDim.y - 1) / blockDim.y);
+    GlobalConstants* hostConstRendererParams = (GlobalConstants*)malloc(sizeof(GlobalConstants)); 
+    cudaMemcpy(hostConstRendererParams, &cuConstRendererParams, sizeof(GlobalConstants), cudaMemcpyDeviceToHost);
+    dim3 gridDim((hostConstRendererParams->imageWidth + blockDim.x - 1) / blockDim.x, (hostConstRendererParams->imageHeight + blockDim.y - 1) / blockDim.y);
 
     kernelRenderPixels<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();
