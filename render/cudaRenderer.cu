@@ -540,16 +540,12 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     }
 }
 
-__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, uint* prefixSumScratch) {
+__global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, uint* prefixSumScratch) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (index > cuConstRendererParams.pow2Circles)
         return;
     
-    int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
-    int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-
-
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
@@ -818,7 +814,9 @@ CudaRenderer::render() {
             dim3 gridDimScan((params.pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
             uint* prefixSumScratch = nullptr;
             cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, prefixSumScratch);
+            int* circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
+            int* circles_per_block_start = circles_per_block + circles_per_block_offset;
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
         }
     }
 
