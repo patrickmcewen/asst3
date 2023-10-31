@@ -42,7 +42,7 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 dim3 blockDim(16, 16);
-dim3 gridDim(1, 1); // initialized in setup
+dim3 gridDim; // initialized in setup
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
