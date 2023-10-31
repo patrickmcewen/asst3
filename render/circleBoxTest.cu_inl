@@ -21,9 +21,9 @@ circleInBoxConservative(
     // expand box by circle radius.  Test if circle center is in the
     // expanded box.
 
-    if ( circleX >= (boxL - circleRadius) ||
-         circleX <= (boxR + circleRadius) ||
-         circleY >= (boxB - circleRadius) ||
+    if ( circleX >= (boxL - circleRadius) &&
+         circleX <= (boxR + circleRadius) &&
+         circleY >= (boxB - circleRadius) &&
          circleY <= (boxT + circleRadius) ) {
         return 1;
     } else {

@@ -532,9 +532,9 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
             int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
 
             float boxL = (float)(x * cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
-            float boxR = (float)(x * (cuConstRendererParams.blockDim_x) + cuConstRendererParams.blockDim_x - 1) / cuConstRendererParams.imageWidth;
+            float boxR = (float)(x * (cuConstRendererParams.blockDim_x + 1)) / cuConstRendererParams.imageWidth;
             float boxT = (float)(y * cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-            float boxB = (float)(y * (cuConstRendererParams.blockDim_y) + cuConstRendererParams.blockDim_y - 1) / cuConstRendererParams.imageHeight;
+            float boxB = (float)(y * (cuConstRendererParams.blockDim_y + 1)) / cuConstRendererParams.imageHeight;
             //printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
             //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
