@@ -84,7 +84,7 @@ inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=
 #define cudaCheckError(ans) ans
 #endif
 
-const inline int nextPow2(int n) {
+static inline int nextPow2(int n) {
     n--;
     n |= n >> 1;
     n |= n >> 2;
@@ -536,7 +536,8 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    const int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
+    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
+    const int circ = pow2Circles;
     
     if (index > pow2Circles)
         return;
@@ -546,7 +547,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
     int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    uint prefixSumScratch[pow2Circles];
+    uint prefixSumScratch[circ];
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
 
