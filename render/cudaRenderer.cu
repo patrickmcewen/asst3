@@ -537,7 +537,6 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
-    const int circ = pow2Circles;
     
     if (index > pow2Circles)
         return;
@@ -547,9 +546,11 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
     int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    uint prefixSumScratch[circ];
+    uint* prefixSumScratch = (uint*)malloc(sizeof(uint) * pow2Circles);
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
+
+    free(prefixSumScratch);
 
 }
 
