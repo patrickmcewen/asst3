@@ -471,9 +471,11 @@ __global__ void kernelRenderCircles() {
     }
 }
 
-__global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pairs) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
+__global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pairs, int blockX, int blockY) {
+    int indx = blockIdx.x * blockDim.x + threadIdx.x;
+    int indy = blockIdx.y * blockDim.y + threadIdx.y;
+    int x = (blockX * cuConstRendererParams.blockDim_x) + indx;
+    int y = (blockY * cuConstRendererParams.blockDim_y) + indy;
     //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
 
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
@@ -886,7 +888,7 @@ CudaRenderer::render() {
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int total_pairs_offset = (y * params.gridDim_x) + x;
-            kernelRenderPixels<<<gridDimCircles, blockDimCircles>>>(circles_per_block_final, *(total_pairs + total_pairs_offset));
+            kernelRenderPixels<<<gridDimCircles, blockDimCircles>>>(circles_per_block_final, *(total_pairs + total_pairs_offset), x, y);
         }
     }
     cudaDeviceSynchronize();
