@@ -532,7 +532,7 @@ __global__ void kernelBoundCircles() {
             printf("top: %f, bottom: %f, left: %f, right: %f\n", boxT, boxB, boxL, boxR);
             printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-            cudaCheckError(__syncthreads());
+            cudaCheckError(cudaDeviceSynchronize());
             printf("result was %d\n", circles_per_block[circles_per_block_index]);
         }
     }
