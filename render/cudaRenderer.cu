@@ -546,7 +546,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
     if (index > cuConstRendererParams.pow2Circles)
         return;
     
-    old_data = circles_per_block_start[index];
+    int old_data = circles_per_block_start[index];
     
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
@@ -823,7 +823,7 @@ CudaRenderer::render() {
             kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
             cudaDeviceSynchronize();
         }
-        printf("\n")
+        printf("\n");
         if (x > params.gridDim_x / 2) break;
     }
 
