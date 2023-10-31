@@ -853,7 +853,7 @@ CudaRenderer::render() {
         }
     }
     
-    /*int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
+    int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(total_pairs_print, total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data2, circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -876,7 +876,7 @@ CudaRenderer::render() {
             printf("\n");
         }
         if (x > params.gridDim_x / 2) break;
-    }*/
+    }
 
     cudaCheckError(cudaDeviceSynchronize());
 
