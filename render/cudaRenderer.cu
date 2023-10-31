@@ -430,6 +430,7 @@ __global__ void kernelRenderCircles() {
 __global__ void kernelRenderPixels() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
+    printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
 
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
@@ -675,7 +676,8 @@ CudaRenderer::render() {
     GlobalConstants* hostConstRendererParams = (GlobalConstants*)malloc(sizeof(GlobalConstants)); 
     cudaMemcpy(hostConstRendererParams, &cuConstRendererParams, sizeof(GlobalConstants), cudaMemcpyDeviceToHost);
     dim3 gridDim((hostConstRendererParams->imageWidth + blockDim.x - 1) / blockDim.x, (hostConstRendererParams->imageHeight + blockDim.y - 1) / blockDim.y);
-    printf("grid dims are x- %d and y- %d", gridDim.x, gridDim.y);
+    print("imageWidth: %d, height: %d\n", hostConstRendererParams->imageWidth, hostConstRendererParams->imageHeight);
+    printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     kernelRenderPixels<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();
 }
