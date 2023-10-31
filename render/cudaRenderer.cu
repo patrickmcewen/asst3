@@ -47,7 +47,7 @@ __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
 
-int* circles_per_block; // flattened 2d array
+__device__ int* circles_per_block; // flattened 2d array
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
