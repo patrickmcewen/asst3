@@ -45,8 +45,7 @@ int gridDim_x, gridDim_y; // initialized in setup
 int blockDim_x = 16;
 int blockDim_y = 16;
 
-int** circles_per_block;
-int** circles_per_block_device;
+int* circles_per_block; // flattened 2d array
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
@@ -614,12 +613,7 @@ CudaRenderer::setup() {
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
     
     circles_per_block = (int**)malloc(sizeof(int*) * gridDim_x * gridDim_y);
-    for (int i = 0; i < numCircles; i++) {
-        cudaMalloc(&circles_per_block[i], sizeof(int) * numCircles);
-    }
-
-    cudaMalloc(&circles_per_block_device, sizeof(int*) * gridDim_x * gridDim_y);
-    cudaMemcpy(circles_per_block_device, circles_per_block, sizeof(int*) * gridDim_x * gridDim_y, cudaMemcpyHostToDevice);
+    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * gridDim_x * gridDim_y);
 
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
