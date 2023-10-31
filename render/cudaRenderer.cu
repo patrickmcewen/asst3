@@ -816,6 +816,9 @@ CudaRenderer::render() {
         }
     }
 
+    int size_of_one_block = pow2Circles;
+    int size_of_one_row = pow2Circles * params.gridDim_x;
+
     int* print_data = (int*)malloc(sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
@@ -843,9 +846,6 @@ CudaRenderer::render() {
     }
 
     cudaCheckError(cudaDeviceSynchronize());
-
-    int size_of_one_block = pow2Circles;
-    int size_of_one_row = pow2Circles * params.gridDim_x;
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
