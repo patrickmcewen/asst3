@@ -542,11 +542,10 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
     int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    uint* prefixSumScratch = (uint*)malloc(sizeof(uint) * pow2Circles);
+    uint* prefixSumScratch = nullptr;
+    cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
-
-    free(prefixSumScratch);
 
 }
 
