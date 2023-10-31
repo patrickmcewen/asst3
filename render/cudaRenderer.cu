@@ -791,6 +791,8 @@ CudaRenderer::render() {
         }
     }
 
+    cudaCheckError(cudaDeviceSynchronize());
+
 
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
