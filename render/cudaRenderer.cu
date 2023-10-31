@@ -84,7 +84,7 @@ inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=
 #define cudaCheckError(ans) ans
 #endif
 
-static inline int nextPow2(int n) {
+const inline int nextPow2(int n) {
     n--;
     n |= n >> 1;
     n |= n >> 2;
