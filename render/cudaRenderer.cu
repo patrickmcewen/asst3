@@ -36,6 +36,10 @@ struct GlobalConstants {
     int gridDim_y;
     int blockDim_x;
     int blockDim_y;
+
+    int size_of_one_block;
+    int size_of_one_row;
+    int pow2Circles;
 };
 
 // Global variable that is in scope, but read-only, for all cuda
@@ -465,7 +469,7 @@ __global__ void kernelRenderCircles() {
     }
 }
 
-__global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pairs, int pow2Circles) {
+__global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pairs) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
@@ -474,9 +478,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         return;
     }
     int total_pairs_offset = (y * cuConstRendererParams.gridDim_x) + x;
-    int size_of_one_block = pow2Circles;
-    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
-    int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+    int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int num_circles_in_block = *(total_pairs + total_pairs_offset);
 
@@ -503,7 +505,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 
 
 // for each circle, loop over all blocks and check if the circle is contained inside
-__global__ void kernelBoundCircles(int* circles_per_block, int pow2Circles) {
+__global__ void kernelBoundCircles(int* circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
@@ -518,12 +520,10 @@ __global__ void kernelBoundCircles(int* circles_per_block, int pow2Circles) {
 
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
-    int size_of_one_block = pow2Circles;
-    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
 
-            int circles_per_block_index = (size_of_one_row * y) + (size_of_one_block * x) + circle_index;
+            int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
 
             float boxL = (float)(x * cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
             float boxR = (float)(x * (cuConstRendererParams.blockDim_x) + cuConstRendererParams.blockDim_x - 1) / cuConstRendererParams.imageWidth;
@@ -538,19 +538,17 @@ __global__ void kernelBoundCircles(int* circles_per_block, int pow2Circles) {
     }
 }
 
-__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int pow2Circles, uint* prefixSumScratch) {
+__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, uint* prefixSumScratch) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     
-    if (index > pow2Circles)
+    if (index > cuConstRendererParams.pow2Circles)
         return;
     
-    int size_of_one_block = pow2Circles;
-    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
-    int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+    int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
 
-    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
+    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
@@ -697,8 +695,11 @@ CudaRenderer::setup() {
 
     params.gridDim_x = (params.imageWidth + params.blockDim_x - 1) / params.blockDim_x;
     params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
-    
 
+    params.pow2Circles = nextPow2(params.numCircles);
+    params.size_of_one_row = params.pow2Circles * params.gridDim_x;
+    params.size_of_one_block = params.pow2Circles;
+    
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
 
@@ -792,31 +793,27 @@ CudaRenderer::render() {
 
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
-    int pow2Circles = nextPow2(params.numCircles);
 
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
-    cudaMalloc(&circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMalloc(&circles_per_block_final, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
 
-    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block, pow2Circles);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int size_of_one_block = pow2Circles;
-    int size_of_one_row = pow2Circles * params.gridDim_x;
-
-    int* print_data = (int*)malloc(sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMemcpy(print_data, circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     printf("copied data\n");
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
-            int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = print_data + circles_per_block_offset;
             printf("index %d and %d: ", x, y);
-            for (int j = 0; j < pow2Circles; j++) {
+            for (int j = 0; j < params.pow2Circles; j++) {
                 printf("%d ", circles_per_block_start[j]);
             }
             printf("\n");
@@ -828,22 +825,38 @@ CudaRenderer::render() {
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             dim3 blockDimScan(256, 1);
-            dim3 gridDimScan((pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
+            dim3 gridDimScan((params.pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
             uint* prefixSumScratch = nullptr;
-            cudaMalloc(&prefixSumScratch, sizeof(uint) * pow2Circles * 2);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, pow2Circles, prefixSumScratch);
+            cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block, x, y, prefixSumScratch);
         }
     }
 
 
     cudaCheckError(cudaDeviceSynchronize());
+
+    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+    printf("copied data\n");
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
+            int* circles_per_block_start = print_data + circles_per_block_offset;
+            printf("index %d and %d: ", x, y);
+            for (int j = 0; j < params.pow2Circles; j++) {
+                printf("%d ", circles_per_block_start[j]);
+            }
+            printf("\n");
+        }
+        if (x > params.gridDim_x / 2) break;
+    }
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
-            get_total_pairs<<<1, 1>>>(circles_per_block, pow2Circles, total_pairs + (y * params.gridDim_x) + x);
+            get_total_pairs<<<1, 1>>>(circles_per_block, total_pairs + (y * params.gridDim_x) + x);
         }
     }
 
@@ -851,7 +864,7 @@ CudaRenderer::render() {
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
-            int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             int* circles_per_block_final_start = circles_per_block_final + circles_per_block_offset;
             get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, circles_per_block_final_start, pow2Circles);
@@ -865,7 +878,7 @@ CudaRenderer::render() {
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
-    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs, pow2Circles);
+    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
     cudaDeviceSynchronize();
 }
 
