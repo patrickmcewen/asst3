@@ -755,7 +755,9 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    for (int i = 0; i < params.numCircles)
+    for (int i = 0; i < params.numCircles; i++) {
+
+    }
 
 
     // pixel parallel only
