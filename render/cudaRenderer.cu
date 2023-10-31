@@ -536,7 +536,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
+    const int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
     
     if (index > pow2Circles)
         return;
