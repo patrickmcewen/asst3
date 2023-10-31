@@ -546,10 +546,13 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
     if (index > cuConstRendererParams.pow2Circles)
         return;
     
+    old_data = circles_per_block_start[index];
+    
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
+    printf("for index %d, input data %d, output data %d\n", index, old_data, circles_per_block_start[index]);
 }
 
 __global__ void get_repeats_final(int* input, int* output, int length) {
@@ -810,6 +813,7 @@ CudaRenderer::render() {
     //launch exclusive scans for each block
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
+            printf("x: %d, y: %d\n", x, y);
             dim3 blockDimScan(256, 1);
             dim3 gridDimScan((params.pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
             uint* prefixSumScratch = nullptr;
@@ -817,13 +821,16 @@ CudaRenderer::render() {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
+            cudaDeviceSynchronize();
         }
+        printf("\n")
+        if (x > params.gridDim_x / 2) break;
     }
 
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    /*int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data2, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     printf("copied data\n");
     for (int x = 0; x < params.gridDim_x; x++) {
@@ -843,7 +850,7 @@ CudaRenderer::render() {
             printf("\n");
         }
         if (x > params.gridDim_x / 2) break;
-    }
+    }*/
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
