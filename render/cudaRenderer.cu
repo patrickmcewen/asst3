@@ -465,31 +465,45 @@ __global__ void kernelRenderPixels() {
     }
 }
 
+__global__ void boundCircles(float3 p, float rad, int circle_index) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y)
+        return;
+
+    int size_of_one_block = cuConstRendererParams.numCircles;
+    int size_of_one_row = cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x;
+
+    int circles_per_block_index = (size_of_one_row * y) + (size_of_one_block * x) + circle_index;
+
+    float boxL = x * cuConstRendererParams.blockDim_x;
+    float boxR = x * (cuConstRendererParams.blockDim_x + 1) - 1;
+    float boxT = y * cuConstRendererParams.blockDim_y;
+    float boxB = y * (cuConstRendererParams.blockDim_y + 1) - 1;
+
+    circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+}
+
 __global__ void kernelBoundCircles() {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index >= cuConstRendererParams.numCircles)
         return;
     
-    int index3 = 3 * index;
-
     // read position and radius
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
     float  rad = cuConstRendererParams.radius[index];
 
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
-    short imageWidth = cuConstRendererParams.imageWidth;
-    short imageHeight = cuConstRendererParams.imageHeight;
-    short minX = static_cast<short>(imageWidth * (p.x - rad));
-    short maxX = static_cast<short>(imageWidth * (p.x + rad)) + 1;
-    short minY = static_cast<short>(imageHeight * (p.y - rad));
-    short maxY = static_cast<short>(imageHeight * (p.y + rad)) + 1;
 
-    int start_of_block_circles = index * cuConstRendererParams.numCircles; // offset into the circles_per_block array
+    dim3 blockDim(cuConstRendererParams.gridDim_x, cuConstRendererParams.gridDim_y); // want 1 block with 1 thread per grid section
+    dim3 gridDim(1, 1);
 
-    dim3 blockDim(cuConstRendererParams.blockDim_x, cuConstRendererParams.blockDim_y);
-    dim3 gridDim(cuConstRendererParams.gridDim_x, cuConstRendererParams.gridDim_y);
+    boundCircles<<<gridDim, blockDim>>>(p, rad, index);
+    __syncthreads();
+    
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
