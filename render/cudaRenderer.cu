@@ -588,9 +588,9 @@ CudaRenderer::setup() {
     gridDim_x = (params.imageWidth + blockDim_x - 1) / blockDim_x;
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
 
-    cudaMalloc(&circlesPerBlock, sizeof(int*) * numCircles);
+    cudaMalloc(&circles_per_block, sizeof(int*) * numCircles);
     for (int i = 0; i < numCircles; i++) {
-        cudaMalloc(&circlesPerBlock[i], sizeof(int) * gridDim_x * gridDim_y);
+        cudaMalloc(&circles_per_block[i], sizeof(int) * gridDim_x * gridDim_y);
     }
 
 
