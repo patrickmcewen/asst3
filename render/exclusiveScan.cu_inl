@@ -21,8 +21,6 @@
 // ================= USAGE (in cudaRenderer.cu) =====================
 
 // at the top of the file:
-#define BLOCKSIZE 256
-#define SCAN_BLOCK_DIM   256  // needed by sharedMemExclusiveScan implementation
 // #include "exclusiveScan.cu_inl"
 
 // ...

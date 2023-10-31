@@ -69,7 +69,9 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "lookupColor.cu_inl"
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
+
 #define BLOCKSIZE 256
+#define SCAN_BLOCK_DIM   BLOCKSIZE  // needed by sharedMemExclusiveScan implementation
 
 #define DEBUG
 
@@ -481,7 +483,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int num_circles_in_block = *(total_pairs + total_pairs_offset);
-
+    // dont launch kernel if num_circles_in_block = 0
     for (int i = 0; i < num_circles_in_block; i++) {
         int circle_ind = circles_per_block_start[i];
         // read position and radius
@@ -547,9 +549,8 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, uint* 
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    __shared__ uint prefixSumScratch1[10000];
 
-    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch1, cuConstRendererParams.pow2Circles);
+    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
