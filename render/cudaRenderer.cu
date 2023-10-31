@@ -551,8 +551,8 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
 
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
-    if (circles_per_block_start[index])
-        printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
+    //if (circles_per_block_start[index])
+        //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
 }
 
@@ -821,7 +821,7 @@ CudaRenderer::render() {
 
     int* print_data = (int*)malloc(sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-
+    printf("copied data")
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
