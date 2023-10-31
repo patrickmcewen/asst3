@@ -814,7 +814,7 @@ CudaRenderer::render() {
             dim3 gridDimScan((params.pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
             uint* prefixSumScratch = nullptr;
             cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
-            int* circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
         }
