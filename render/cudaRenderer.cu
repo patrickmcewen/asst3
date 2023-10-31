@@ -782,6 +782,7 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
+    //launch exclusive scans for each block
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             dim3 blockDimScan(256, 1);
