@@ -501,15 +501,6 @@ __global__ void kernelBoundCircles() {
 
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
-
-    dim3 blockDim(cuConstRendererParams.gridDim_x, cuConstRendererParams.gridDim_y); // want 1 block with 1 thread per grid section
-    dim3 gridDim(1, 1);
-
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y)
-        return;
-
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
             int size_of_one_block = cuConstRendererParams.numCircles;
