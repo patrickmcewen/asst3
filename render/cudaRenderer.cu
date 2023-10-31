@@ -565,6 +565,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
 
 __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
     total_pairs[0] = input[length-1];
+    printf("total_pairs: %d\n", total_pairs[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -821,7 +822,6 @@ CudaRenderer::render() {
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             get_total_pairs<<<1, 1>>>(circles_per_block, pow2Circles, total_pairs + (y * params.gridDim_x) + x);
-            cudaDeviceSynchronize();
         }
     }
 
