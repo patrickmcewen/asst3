@@ -45,6 +45,8 @@ int gridDim_x, gridDim_y; // initialized in setup
 int blockDim_x = 16;
 int blockDim_y = 16;
 
+__global__ int** circles_per_block;
+
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
 __constant__ int    cuConstNoiseYPermutationTable[256];
@@ -586,6 +588,11 @@ CudaRenderer::setup() {
     gridDim_x = (params.imageWidth + blockDim_x - 1) / blockDim_x;
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
 
+    cudaMalloc(&circlesPerBlock, sizeof(int*) * numCircles);
+    for (int i = 0; i < numCircles; i++) {
+        cudaMalloc(&circlesPerBlock[i], sizeof(int) * gridDim_x * gridDim_y);
+    }
+
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
 
@@ -681,7 +688,7 @@ CudaRenderer::render() {
     cudaDeviceSynchronize();*/
 
     dim3 blockDimCircles(256, 1);
-    dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDim.x);
+    dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
 
     // pixel parallel only
     dim3 blockDim(blockDim_x, blockDim_y);
