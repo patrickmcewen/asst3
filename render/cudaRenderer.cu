@@ -66,6 +66,7 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "lookupColor.cu_inl"
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
+#define SCAN_BLOCK_DIM   BLOCKSIZE
 
 
 // kernelClearImageSnowflake -- (CUDA device code)
