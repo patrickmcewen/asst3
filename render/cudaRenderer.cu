@@ -543,7 +543,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, uint* prefixSumScratch) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     
-    if (index > cuConstRendererParams.pow2Circles)
+    if (index >= cuConstRendererParams.pow2Circles)
         return;
     
     int old_data = circles_per_block_start[index];
