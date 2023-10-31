@@ -471,7 +471,7 @@ __global__ void kernelRenderCircles() {
     }
 }
 
-__global__ void kernelRenderPixels(/*int* circles_per_block_final, int* total_pairs*/) {
+__global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pairs) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
@@ -480,9 +480,9 @@ __global__ void kernelRenderPixels(/*int* circles_per_block_final, int* total_pa
         return;
     }
 
-    /*int total_pairs_offset = (blockIdx.y * cuConstRendererParams.gridDim_x) + blockIdx.x;
+    int total_pairs_offset = (blockIdx.y * cuConstRendererParams.gridDim_x) + blockIdx.x;
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
-    int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;*/
+    int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
@@ -797,7 +797,7 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
-    /*dim3 blockDimCircles(256, 1);
+    dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
@@ -876,9 +876,9 @@ CudaRenderer::render() {
             printf("\n");
         }
         if (x > params.gridDim_x / 2) break;
-    }
+    }*/
 
-    cudaCheckError(cudaDeviceSynchronize());*/
+    cudaCheckError(cudaDeviceSynchronize());
 
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
@@ -887,7 +887,7 @@ CudaRenderer::render() {
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     // go one thread per block instead of 1 thread per pixel
-    kernelRenderPixels<<<gridDim, blockDim>>>(/*circles_per_block_final, total_pairs*/);
+    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
     cudaDeviceSynchronize();
 }
 
