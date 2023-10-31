@@ -488,8 +488,8 @@ __global__ void kernelBoundCircles() {
 
     int start_of_block_circles = index * cuConstRendererParams.numCircles; // offset into the circles_per_block array
 
-    dim3 blockDim(*blockDim_x_dev, *blockDim_y_dev);
-    dim3 gridDim(*gridDim_x_dev, *gridDim_y_dev);
+    dim3 blockDim(cuConstRendererParams.blockDim_x, cuConstRendererParams.blockDim_y);
+    dim3 gridDim(cuConstRendererParams.gridDim_x, cuConstRendererParams.gridDim_y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
