@@ -547,7 +547,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, uint* 
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
     int* circles_per_block_start = circles_per_block + circles_per_block_offset;
 
-    __shared__ uint prefixSumScratch1[2*cuConstRenderParams.pow2Circles];
+    __shared__ uint prefixSumScratch1[2*cuConstRendererParams.pow2Circles];
 
     circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
