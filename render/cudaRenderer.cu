@@ -834,7 +834,9 @@ CudaRenderer::render() {
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
-            get_total_pairs<<<1, 1>>>(circles_per_block, params.pow2Circles, total_pairs + (y * params.gridDim_x) + x);
+            int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
+            int* circles_per_block_start = circles_per_block + circles_per_block_offset;
+            get_total_pairs<<<1, 1>>>(circles_per_block_start, params.pow2Circles, total_pairs + (y * params.gridDim_x) + x);
         }
     }
 
