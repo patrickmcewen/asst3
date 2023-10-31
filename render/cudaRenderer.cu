@@ -64,8 +64,9 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "noiseCuda.cu_inl"
 #include "lookupColor.cu_inl"
 #include "circleBoxTest.cu_inl"
-//#include "exclusiveScan.cu_inl"
-//#define SCAN_BLOCK_DIM   BLOCKSIZE
+#include "exclusiveScan.cu_inl"
+#define BLOCKSIZE 256
+#define SCAN_BLOCK_DIM   BLOCKSIZE
 
 #define DEBUG
 
@@ -84,6 +85,16 @@ inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=
 #define cudaCheckError(ans) ans
 #endif
 
+static inline int nextPow2(int n) {
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+    return n;
+}
 
 // kernelClearImageSnowflake -- (CUDA device code)
 //
@@ -493,6 +504,8 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
         return;
 
     int index3 = 3 * circle_index;
+
+    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
     
     // read position and radius
     //printf("getting p and rad\n");
@@ -501,8 +514,8 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
-    int size_of_one_block = cuConstRendererParams.numCircles;
-    int size_of_one_row = cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x;
+    int size_of_one_block = pow2Circles;
+    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
 
@@ -519,7 +532,24 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
             //printf("result was %d\n", circles_per_block[circles_per_block_index]);
         }
     }
+}
+
+__global__ void kernelExclusiveScan(int* circles_per_block, int x, int y) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int pow2Circles = nextPow2(cuConstRendererParams.numCircles);
     
+    if (index > pow2Circles)
+        return;
+    
+    int size_of_one_block = pow2Circles;
+    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
+    int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+    int* circles_per_block_start = circles_per_block + circles_per_block_offset;
+
+    uint prefixSumScratch[pow2Circles];
+
+    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, pow2Circles);
 
 }
 
@@ -749,14 +779,18 @@ CudaRenderer::render() {
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
-    cudaMalloc(&circles_per_block, sizeof(int) * params.numCircles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block, sizeof(int) * nextPow2(params.numCircles) * params.gridDim_x * params.gridDim_y);
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    for (int i = 0; i < params.numCircles; i++) {
-
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            dim3 blockDimScan(256, 1);
+            dim3 gridDimScan((nextPow2(params.numCircles) + blockDimScan.x - 1) / blockDimScan.x);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block);
+        }
     }
 
 
