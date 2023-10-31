@@ -45,6 +45,7 @@ int gridDim_x, gridDim_y; // initialized in setup
 int gridDim_x_dev, gridDim_y_dev;
 int blockDim_x = 16;
 int blockDim_y = 16;
+int blockDim_x_dev, blockDim_y_dev;
 
 int* circles_per_block; // flattened 2d array
 
@@ -485,10 +486,10 @@ __global__ void kernelBoundCircles() {
     short minY = static_cast<short>(imageHeight * (p.y - rad));
     short maxY = static_cast<short>(imageHeight * (p.y + rad)) + 1;
 
-    int start_of_block_circles = index * numCircles; // offset into the circles_per_block array
+    int start_of_block_circles = index * cuConstRendererParams.numCircles; // offset into the circles_per_block array
 
-    dim3 blockDim(blockDim_x, blockDim_y);
-    dim3 gridDim()
+    dim3 blockDim(blockDim_x_dev, blockDim_y_dev);
+    dim3 gridDim(gridDim_x_dev, gridDim_y_dev);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -617,6 +618,8 @@ CudaRenderer::setup() {
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
     cudaMemcpy(&gridDim_x_dev, &gridDim_x, sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(&gridDim_y_dev, &gridDim_y, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(&blockDim_x_dev, &blockDim_x, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(&blockDim_y_dev, &blockDim_y, sizeof(int), cudaMemcpyHostToDevice);
     
     cudaMalloc(&circles_per_block, sizeof(int) * numCircles * gridDim_x * gridDim_y);
 
