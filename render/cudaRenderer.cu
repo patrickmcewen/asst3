@@ -463,6 +463,30 @@ __global__ void kernelRenderPixels() {
     }
 }
 
+__global__ void kernelBoundCircles() {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (index >= cuConstRendererParams.numCircles)
+        return;
+    
+    int index3 = 3 * index;
+
+    // read position and radius
+    float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
+    float  rad = cuConstRendererParams.radius[index];
+
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+    short minX = static_cast<short>(imageWidth * (p.x - rad));
+    short maxX = static_cast<short>(imageWidth * (p.x + rad)) + 1;
+    short minY = static_cast<short>(imageHeight * (p.y - rad));
+    short maxY = static_cast<short>(imageHeight * (p.y + rad)) + 1;
+
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -588,10 +612,10 @@ CudaRenderer::setup() {
     gridDim_x = (params.imageWidth + blockDim_x - 1) / blockDim_x;
     gridDim_y =  (params.imageHeight + blockDim_y - 1) / blockDim_y;
 
-    cudaMalloc(&circles_per_block, sizeof(int*) * numCircles);
+    /*cudaMalloc(&circles_per_block, sizeof(int*) * numCircles);
     for (int i = 0; i < numCircles; i++) {
         cudaMalloc(&circles_per_block[i], sizeof(int) * gridDim_x * gridDim_y);
-    }
+    }*/
 
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
@@ -689,6 +713,7 @@ CudaRenderer::render() {
 
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
 
     // pixel parallel only
     dim3 blockDim(blockDim_x, blockDim_y);
