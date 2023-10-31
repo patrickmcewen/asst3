@@ -675,7 +675,7 @@ CudaRenderer::render() {
     GlobalConstants* hostConstRendererParams = (GlobalConstants*)malloc(sizeof(GlobalConstants)); 
     cudaMemcpy(hostConstRendererParams, &cuConstRendererParams, sizeof(GlobalConstants), cudaMemcpyDeviceToHost);
     dim3 gridDim((hostConstRendererParams->imageWidth + blockDim.x - 1) / blockDim.x, (hostConstRendererParams->imageHeight + blockDim.y - 1) / blockDim.y);
-
+    printf("grid dims are x- %d and y- %d", gridDim.x, gridDim.y);
     kernelRenderPixels<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();
 }
