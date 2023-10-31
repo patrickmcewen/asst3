@@ -40,6 +40,8 @@ struct GlobalConstants {
 // place to put read-only variables).
 __constant__ GlobalConstants cuConstRendererParams;
 
+GlobalConstants hostConstRendererParams;
+
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
 __constant__ int    cuConstNoiseYPermutationTable[256];
@@ -579,6 +581,8 @@ CudaRenderer::setup() {
     params.radius = cudaDeviceRadius;
     params.imageData = cudaDeviceImageData;
 
+    memcpy(hostConstRendererParams, &params, sizeof(GlobalConstants));
+
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
 
     // also need to copy over the noise lookup tables, so we can
@@ -673,10 +677,8 @@ CudaRenderer::render() {
     cudaDeviceSynchronize();*/
 
     dim3 blockDim(16, 16);
-    GlobalConstants* hostConstRendererParams = (GlobalConstants*)malloc(sizeof(GlobalConstants)); 
-    cudaMemcpy(*hostConstRendererParams, cuConstRendererParams, sizeof(GlobalConstants), cudaMemcpyDeviceToHost);
-    dim3 gridDim((hostConstRendererParams->imageWidth + blockDim.x - 1) / blockDim.x, (hostConstRendererParams->imageHeight + blockDim.y - 1) / blockDim.y);
-    printf("imageWidth: %d, height: %d\n", hostConstRendererParams->imageWidth, hostConstRendererParams->imageHeight);
+    dim3 gridDim((hostConstRendererParams.imageWidth + blockDim.x - 1) / blockDim.x, (hostConstRendererParams.imageHeight + blockDim.y - 1) / blockDim.y);
+    printf("imageWidth: %d, height: %d\n", hostConstRendererParams.imageWidth, hostConstRendererParams.imageHeight);
     printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     kernelRenderPixels<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();
