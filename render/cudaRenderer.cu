@@ -45,7 +45,7 @@ int gridDim_x, gridDim_y; // initialized in setup
 int blockDim_x = 16;
 int blockDim_y = 16;
 
-__global__ int** circles_per_block;
+int** circles_per_block;
 
 // read-only lookup tables used to quickly compute noise (needed by
 // advanceAnimation for the snowflake scene)
