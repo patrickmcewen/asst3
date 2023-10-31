@@ -835,13 +835,13 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+    int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(print_data2, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     printf("copied data\n");
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
-            int* circles_per_block_start = print_data + circles_per_block_offset;
+            int* circles_per_block_start = print_data2 + circles_per_block_offset;
             printf("index %d and %d: ", x, y);
             for (int j = 0; j < params.pow2Circles; j++) {
                 printf("%d ", circles_per_block_start[j]);
@@ -856,7 +856,7 @@ CudaRenderer::render() {
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
-            get_total_pairs<<<1, 1>>>(circles_per_block, params.pow2Circles, total_pairs + (y * params.gridDim_x) + x);
+            get_total_pairs<<<1, 1>>>(circles_per_block, total_pairs + (y * params.gridDim_x) + x);
         }
     }
 
@@ -867,7 +867,7 @@ CudaRenderer::render() {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             int* circles_per_block_final_start = circles_per_block_final + circles_per_block_offset;
-            get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, circles_per_block_final_start);
+            get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, params.pow2Circles, circles_per_block_final_start);
         }
     }
 
