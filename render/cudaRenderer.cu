@@ -518,10 +518,10 @@ __global__ void kernelBoundCircles() {
 
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
+    int size_of_one_block = cuConstRendererParams.numCircles;
+    int size_of_one_row = cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x;
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
-            int size_of_one_block = cuConstRendererParams.numCircles;
-            int size_of_one_row = cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x;
 
             int circles_per_block_index = (size_of_one_row * y) + (size_of_one_block * x) + circle_index;
 
@@ -766,7 +766,7 @@ CudaRenderer::render() {
     dim3 gridDimCircles((numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
 
-    cudaCheckError(cudaDeviceSynchronize());
+    //cudaCheckError(cudaDeviceSynchronize());
 
 
     // pixel parallel only
