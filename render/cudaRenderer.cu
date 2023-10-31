@@ -881,6 +881,7 @@ CudaRenderer::render() {
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
+    printf("blockDims: %d %d, gridDims: %d %d\n", blockDim.x, blockDim.y, gridDim.x, gridDim.y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     for (int x = 0; x < params.gridDim_x; x++) {
