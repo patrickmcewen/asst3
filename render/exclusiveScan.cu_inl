@@ -68,7 +68,7 @@ inline __device__ uint warpScanExclusive(int threadIndex, uint idata, volatile u
     return warpScanInclusive(threadIndex, idata, sScratch, size) - idata;
 }
 
-__inline__ __device__ void
+/*__inline__ __device__ void
 sharedMemExclusiveScan(int threadIndex, uint* sInput, uint* sOutput, volatile uint* sScratch, uint size)
 {
     if (size > WARP_SIZE) {
@@ -106,3 +106,4 @@ sharedMemExclusiveScan(int threadIndex, uint* sInput, uint* sOutput, volatile ui
         sOutput[threadIndex] = warpScanExclusive(threadIndex, idata, sScratch, size);
     }
 }
+*/
