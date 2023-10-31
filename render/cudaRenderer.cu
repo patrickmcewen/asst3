@@ -432,7 +432,7 @@ __global__ void kernelRenderCircles() {
 __global__ void kernelRenderPixels() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
+    //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
 
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
