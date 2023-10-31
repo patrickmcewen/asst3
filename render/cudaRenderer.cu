@@ -31,6 +31,11 @@ struct GlobalConstants {
     int imageWidth;
     int imageHeight;
     float* imageData;
+
+    int gridDim_x;
+    int gridDim_y;
+    int blockDim_x;
+    int blockDim_y;
 };
 
 // Global variable that is in scope, but read-only, for all cuda
@@ -41,14 +46,6 @@ struct GlobalConstants {
 __constant__ GlobalConstants cuConstRendererParams;
 
 GlobalConstants params;
-int* gridDim_x;
-int* gridDim_y; // initialized in setup
-int* gridDim_x_dev;
-int* gridDim_y_dev;
-int* blockDim_x;
-int* blockDim_y;
-int* blockDim_x_dev;
-int* blockDim_y_dev;
 
 int* circles_per_block; // flattened 2d array
 
@@ -617,26 +614,13 @@ CudaRenderer::setup() {
     params.radius = cudaDeviceRadius;
     params.imageData = cudaDeviceImageData;
 
-    blockDim_x = (int*)malloc(sizeof(int));
-    blockDim_y = (int*)malloc(sizeof(int));
-    gridDim_x = (int*)malloc(sizeof(int));
-    gridDim_y = (int*)malloc(sizeof(int));
+    params.blockDim_x = 16;
+    params.blockDim_y = 16;
 
-    *blockDim_x = 16;
-    *blockDim_y = 16;
-
-    *gridDim_x = (params.imageWidth + *blockDim_x - 1) / *blockDim_x;
-    *gridDim_y =  (params.imageHeight + *blockDim_y - 1) / *blockDim_y;
-    cudaMalloc(&gridDim_x_dev, sizeof(int));
-    cudaMalloc(&gridDim_y_dev, sizeof(int));
-    cudaMalloc(&blockDim_x_dev, sizeof(int));
-    cudaMalloc(&blockDim_y_dev, sizeof(int));
-    cudaMemcpy(gridDim_x_dev, gridDim_x, sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(gridDim_y_dev, gridDim_y, sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(blockDim_x_dev, blockDim_x, sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(blockDim_y_dev, blockDim_y, sizeof(int), cudaMemcpyHostToDevice);
+    params.gridDim_x = (params.imageWidth + params.blockDim_x - 1) / params.blockDim_x;
+    params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
     
-    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * *gridDim_x * *gridDim_y);
+    cudaMalloc(&circles_per_block, sizeof(int) * numCircles * params.gridDim_x * params.gridDim_y);
 
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
@@ -737,8 +721,8 @@ CudaRenderer::render() {
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>();
 
     // pixel parallel only
-    dim3 blockDim(*blockDim_x, *blockDim_y);
-    dim3 gridDim(*gridDim_x, *gridDim_y);
+    dim3 blockDim(params.blockDim_x, params.blockDim_y);
+    dim3 gridDim(params.gridDim_x, params.gridDim_y);
     printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     kernelRenderPixels<<<gridDim, blockDim>>>();
