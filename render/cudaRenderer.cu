@@ -66,7 +66,6 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
 #define BLOCKSIZE 256
-#define SCAN_BLOCK_DIM   BLOCKSIZE
 
 #define DEBUG
 
