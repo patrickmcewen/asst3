@@ -549,6 +549,13 @@ __global__ void kernelExclusiveScan(int* circles_per_block, int x, int y, int po
 
 }
 
+__global__ void get_repeats_final(int* input, int* output, int length) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < length - 1 && (input[index] < input[index+1])) {
+        output[input[index]] = index;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -776,7 +783,9 @@ CudaRenderer::render() {
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
+    int* circles_per_block_final = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block_final, sizeof(int) * pow2Circles * params.gridDim_x * params.gridDim_y);
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block, pow2Circles);
 
@@ -795,6 +804,31 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
+    int* total_pairs = nullptr;
+    cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
+
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs + (x * params.gridDim_y) + y);
+            cudaDeviceSynchronize();
+        }
+    }
+
+    cudaCheckError(cudaDeviceSynchronize());
+
+    int size_of_one_block = pow2Circles;
+    int size_of_one_row = pow2Circles * cuConstRendererParams.gridDim_x;
+
+    for (int x = 0; x < params.gridDim_x; x++) {
+        for (int y = 0; y < params.gridDim_y; y++) {
+            int circles_per_block_offset = (size_of_one_row * y) + (size_of_one_block * x);
+            int* circles_per_block_start = circles_per_block + circles_per_block_offset;
+            int* circles_per_block_final_start = circles_per_block_final + circles_per_block_offset;
+            get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, circles_per_block_final_start, pow2Circles);
+        }
+    }
+
+    cudaCheckError(cudaDeviceSynchronize());
 
     // pixel parallel only
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
