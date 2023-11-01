@@ -542,11 +542,14 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 
             int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
 
-            float boxL = (float)(x * cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
-            float boxR = (float)(x * (cuConstRendererParams.blockDim_x + 1)) / cuConstRendererParams.imageWidth;
-            float boxT = (float)(y * cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-            float boxB = (float)(y * (cuConstRendererParams.blockDim_y + 1)) / cuConstRendererParams.imageHeight;
-            //printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
+            float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
+            float boxR = ((float)x * (cuConstRendererParams.blockDim_x + 1)) / (float)cuConstRendererParams.imageWidth;
+            float boxT = ((float)y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
+            float boxB = ((float)y * (cuConstRendererParams.blockDim_y + 1)) / (float)cuConstRendererParams.imageHeight;
+            if (x == 389 / 16 && y == 205 / 16) {
+                printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
+                printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
+            }
             //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
@@ -822,8 +825,8 @@ CudaRenderer::render() {
     int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
-    int xx = 205 / 16;
-    int yy = 389 / 16;
+    int xx = 389 / 16;
+    int yy = 205 / 16;
     int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     int* circles_per_block_start = print_data_bound + circles_per_block_offset;
     for (int i = 0; i < params.numCircles; i++) {
