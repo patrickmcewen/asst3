@@ -573,9 +573,8 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
         return;
     
     //int old_data = circles_per_block_start[index];
-    uint prefixSumScratch1[100000*2];
     
-    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch1, cuConstRendererParams.pow2Circles);
+    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
