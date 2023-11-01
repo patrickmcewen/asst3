@@ -484,7 +484,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
-    if (x == 389 && y == 205) {
+    if (x == 205 && y == 389) {
         printf("circle numbers: %d\n", total_pairs_val);
     }
     // dont launch kernel if num_circles_in_block = 0
