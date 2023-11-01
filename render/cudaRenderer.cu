@@ -470,7 +470,7 @@ __global__ void kernelRenderCircles() {
         for (int pixelX=screenMinX; pixelX<screenMaxX; pixelX++) {
             float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
                                                  invHeight * (static_cast<float>(pixelY) + 0.5f));
-            shadePixel(index, pixelCenterNorm, p, imgPtr);
+            shadePixel(index, pixelCenterNorm, p, imgPtr, false);
             imgPtr++;
         }
     }
@@ -489,7 +489,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
-    check_pixel = false;
+    bool check_pixel = false;
     if (x == 205 && y == 389) {
         printf("circle numbers: %d\n", total_pairs_val);
         check_pixel = true;
