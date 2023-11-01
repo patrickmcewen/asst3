@@ -376,7 +376,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool
 
     // circle does not contribute to the image
     if (pixelDist > maxDist) {
-        if (check_pixel) printf("circle %d not contributing to image\n", circleIndex);
+        //if (check_pixel) printf("circle %d not contributing to image\n", circleIndex);
         return;
     }
 
@@ -422,11 +422,11 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool
     newColor.z = alpha * rgb.z + oneMinusAlpha * existingColor.z;
     newColor.w = alpha + existingColor.w;
 
-    if (check_pixel) {
+    /*if (check_pixel) {
         printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
         printf("rgb of current circle (index %d): %f, %f, %f\n", circleIndex, rgb.x, rgb.y, rgb.z);
         printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
-    }
+    }*/
 
     // global memory write
     *imagePtr = newColor;
@@ -496,10 +496,10 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
     bool check_pixel = false;
-    if (x == XX && y == YY) {
+    /*if (x == XX && y == YY) {
         printf("total number of circles: %d\n", total_pairs_val);
         check_pixel = true;
-    }
+    }*/
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
@@ -522,9 +522,9 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         // for all pixels in the bonding box
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                             invHeight * (static_cast<float>(y) + 0.5f));
-        if (check_pixel) {
+        /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
-        }
+        }*/
         shadePixel(circle_ind, pixelCenterNorm, p, imgPtr, check_pixel);
     }
 }
@@ -558,11 +558,11 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
             //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-            if (x == XX / 16 && y == YY / 16) {
+            /*if (x == XX / 16 && y == YY / 16) {
                 printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
                 printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
                 printf("result was %d for index %d\n", circles_per_block[circles_per_block_index], circle_index);
-            }
+            }*/
         }
     }
 }
@@ -792,7 +792,7 @@ CudaRenderer::setup() {
     params.pow2Circles = nextPow2(params.numCircles);
     if (params.pow2Circles == params.numCircles) {
         params.pow2Circles <<= 1;
-        printf("new circle numbers: %d\n", params.pow2Circles);
+        //printf("new circle numbers: %d\n", params.pow2Circles);
     }
     params.size_of_one_row = params.pow2Circles * params.gridDim_x;
     params.size_of_one_block = params.pow2Circles;
@@ -902,7 +902,7 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     int xx = XX / 16;
@@ -912,7 +912,7 @@ CudaRenderer::render() {
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
 
 
@@ -935,7 +935,7 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    /*int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
@@ -944,7 +944,7 @@ CudaRenderer::render() {
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
@@ -969,7 +969,7 @@ CudaRenderer::render() {
     }
     cudaCheckError(cudaDeviceSynchronize());
     
-    int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
+    /*int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(total_pairs_print, total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data2, circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -994,14 +994,14 @@ CudaRenderer::render() {
         if (x > params.gridDim_x / 2) break;
     }*/
 
-    circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
+    /*circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     circles_per_block_start = print_data2 + circles_per_block_offset;
     printf("printing circles for specific block\n");
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
     printf("\n");
-    printf("total circles for this one: %d", *total_pairs_print);
+    printf("total circles for this one: %d", *total_pairs_print);*/
 
 
     // pixel parallel only
@@ -1015,9 +1015,9 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
+    /*float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
-    printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);
+    printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);*/
 }
 
