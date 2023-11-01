@@ -904,7 +904,7 @@ CudaRenderer::render() {
 
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
-    float4* data = (float4*)(&image_data_print[4 * (389 * params.imageWidth + 205)]);
+    float4* data = (float4*)(&image_data_print[4 * (205 * params.imageWidth + 389)]);
     printf("205, 389: %f, %f, %f\n", data->x, data->y, data->z);
     cudaDeviceSynchronize();
 }
