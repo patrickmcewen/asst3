@@ -941,7 +941,7 @@ CudaRenderer::render() {
     // go one thread per block instead of 1 thread per pixel
     kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
 
-    cudaDeviceSynchronize();
+    cudaCheckError(cudaDeviceSynchronize());
 
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
