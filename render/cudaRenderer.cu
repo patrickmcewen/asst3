@@ -374,8 +374,10 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool
     float maxDist = rad * rad;
 
     // circle does not contribute to the image
-    if (pixelDist > maxDist)
+    if (pixelDist > maxDist) {
+        printf("circle %d not contributing to image\n", circleIndex);
         return;
+    }
 
     float3 rgb;
     float alpha;
