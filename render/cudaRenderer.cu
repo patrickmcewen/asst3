@@ -902,7 +902,7 @@ CudaRenderer::render() {
     kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
 
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
-    cudaMemcpy(image_data_print, cuConstRendererParams, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
+    cudaMemcpy(image_data_print, cuConstRendererParams.imageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (389 * params.imageWidth + 205)]);
     printf("205, 389: %f, %f, %f\n", data->x, data->y, data->z);
     cudaDeviceSynchronize();
