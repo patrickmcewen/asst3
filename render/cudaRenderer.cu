@@ -831,7 +831,7 @@ CudaRenderer::render() {
     int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
-    int xx = 389 / 16;
+    int xx = 491 / 16;
     int yy = 205 / 16;
     int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     int* circles_per_block_start = print_data_bound + circles_per_block_offset;
@@ -935,7 +935,7 @@ CudaRenderer::render() {
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (yy * params.imageWidth + xx)]);
-    printf("y = 205 (row), x = 491 (column): %f, %f, %f\n", data->x, data->y, data->z);
+    printf("y = %d (row), x = %d (column): %f, %f, %f\n", yy, xx, data->x, data->y, data->z);
     cudaDeviceSynchronize();
 }
 
