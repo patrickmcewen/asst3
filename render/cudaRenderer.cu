@@ -72,6 +72,7 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
 
+#define THREADS_PER_BLOCK 256
 #define BLOCKSIZE 256
 #define SCAN_BLOCK_DIM   BLOCKSIZE  // needed by sharedMemExclusiveScan implementation
 
