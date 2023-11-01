@@ -728,6 +728,10 @@ CudaRenderer::setup() {
     params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
 
     params.pow2Circles = nextPow2(params.numCircles);
+    if (params.pow2Circles == params.numCircles) {
+        params.pow2Circles <<= 1;
+        printf("new circle numbers: %d\n", params.pow2Circles);
+    }
     params.size_of_one_row = params.pow2Circles * params.gridDim_x;
     params.size_of_one_block = params.pow2Circles;
     
@@ -861,7 +865,6 @@ CudaRenderer::render() {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
-            cudaDeviceSynchronize();
         }
         //printf("\n");
     }
@@ -938,10 +941,11 @@ CudaRenderer::render() {
     // go one thread per block instead of 1 thread per pixel
     kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
 
+    cudaDeviceSynchronize();
+
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
     printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);
-    cudaDeviceSynchronize();
 }
 
