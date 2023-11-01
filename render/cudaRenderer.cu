@@ -545,7 +545,6 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     // screen coordinates, so it's clamped to the edges of the screen.
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
-            pixelX = x * cuConstRendererParams.blockDim_x;
 
             int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
 
