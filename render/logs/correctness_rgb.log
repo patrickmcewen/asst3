@@ -12,14 +12,32 @@ Device 0: Tesla T4
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Dumping frames to output_xxx.ppm
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.400000, p.y: 0.500000, rad: 0.300000
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.500000, p.y: 0.500000, rad: 0.300000
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.600000, p.y: 0.500000, rad: 0.300000
+circle center: 0.400000 0.500000, and width: 0.300000
+circle center: 0.500000 0.500000, and width: 0.300000
+circle center: 0.600000 0.500000, and width: 0.300000
+result was 0 for index 0
+result was 1 for index 1
+result was 0 for index 2
+0 1 0 
+printing circles for specific block
+1 0 0 
+total number of circles: 1
+circle ind: 1
+old colors: 1.000000, 1.000000, 1.000000
+rgb of current circle (index 1): 0.000000, 1.000000, 0.000000
+new colors: 0.500000, 1.000000, 0.500000
+y = 205 (row), x = 491 (column): 0.500000, 1.000000, 0.500000
 Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1265 ms
-Advance:  0.0012 ms
-Render:   26.0499 ms
-Total:    26.1776 ms
-File IO:  80.2267 ms
+Clear:    0.1308 ms
+Advance:  0.0014 ms
+Render:   81.1058 ms
+Total:    81.2379 ms
+File IO:  82.1699 ms
 
-Overall:  0.1292 sec (note units are seconds)
+Overall:  0.1864 sec (note units are seconds)

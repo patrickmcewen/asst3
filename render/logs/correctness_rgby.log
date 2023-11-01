@@ -12,14 +12,30 @@ Device 0: Tesla T4
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Dumping frames to output_xxx.ppm
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.250000, p.y: 0.250000, rad: 0.190000
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.300000, p.y: 0.300000, rad: 0.190000
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.500000, p.y: 0.500000, rad: 0.250000
+top: 0.812500, bottom: 0.796875, left: 0.468750, right: 0.484375, p.x: 0.200000, p.y: 0.200000, rad: 0.100000
+circle center: 0.250000 0.250000, and width: 0.190000
+circle center: 0.300000 0.300000, and width: 0.190000
+circle center: 0.500000 0.500000, and width: 0.250000
+circle center: 0.200000 0.200000, and width: 0.100000
+result was 0 for index 0
+result was 0 for index 1
+result was 0 for index 2
+result was 0 for index 3
+0 0 0 0 
+printing circles for specific block
+0 0 0 0 
+total number of circles: 0
+y = 205 (row), x = 491 (column): 1.000000, 1.000000, 1.000000
 Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
-***************** Correctness check passed **************************
-Clear:    0.1240 ms
-Advance:  0.0012 ms
-Render:   25.4490 ms
-Total:    25.5742 ms
-File IO:  80.3075 ms
-
-Overall:  0.1269 sec (note units are seconds)
+Mismatch detected at pixel [61][251], value = 1.000000, expected 0.500000 for color Green
+Mismatch detected at pixel [61][251], value = 1.000000, expected 0.500000 for color Blue
+Mismatch detected at pixel [61][252], value = 1.000000, expected 0.500000 for color Green
+Mismatch detected at pixel [61][252], value = 1.000000, expected 0.500000 for color Blue
+Mismatch detected at pixel [61][253], value = 1.000000, expected 0.500000 for color Green
+Mismatch detected at pixel [61][253], value = 1.000000, expected 0.500000 for color Blue
+ERROR : Mismatch detected between reference and actual
