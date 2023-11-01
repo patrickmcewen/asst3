@@ -558,7 +558,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
             if (x == 491 / 16 && y == 205 / 16) {
                 printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
                 printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
-                printf("result was %d\n", circles_per_block[circles_per_block_index]);
+                printf("result was %d\n for index %d", circles_per_block[circles_per_block_index], circle_index);
             }
         }
     }
