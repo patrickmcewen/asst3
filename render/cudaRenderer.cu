@@ -518,6 +518,9 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         // for all pixels in the bonding box
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                             invHeight * (static_cast<float>(y) + 0.5f));
+        if (check_pixel) {
+            printf("circle ind: %d\n", circle_ind);
+        }
         shadePixel(i, pixelCenterNorm, p, imgPtr, check_pixel);
     }
 }
