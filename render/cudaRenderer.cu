@@ -421,6 +421,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool
 
     if (check_pixel) {
         printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
+        printf("rgb of current circle (index %d): %f, %f, %f\n", circleIndex, rgb.x, rgb.y, rgb.z);
         printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
     }
 
