@@ -62,7 +62,7 @@ __constant__ float  cuConstNoise1DValueTable[256];
 #define COLOR_MAP_SIZE 5
 __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
-#define XX 491
+#define XX 389
 #define YY 205
 
 // including parts of the CUDA code from external files to keep this
@@ -493,7 +493,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int total_pairs_val = *(total_pairs + total_pairs_offset);
     bool check_pixel = false;
     if (x == XX && y == YY) {
-        printf("circle numbers: %d\n", total_pairs_val);
+        printf("total number of circles: %d\n", total_pairs_val);
         check_pixel = true;
     }
     // dont launch kernel if num_circles_in_block = 0
