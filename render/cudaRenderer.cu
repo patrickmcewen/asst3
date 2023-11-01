@@ -822,12 +822,12 @@ CudaRenderer::render() {
     int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
-    x = 389;
-    y = 205;
-    int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
-    int* circles_per_block_start = print_data2 + circles_per_block_offset;
+    int xx = 389;
+    int yy = 205;
+    int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
+    int* circles_per_block_start = print_data_bound + circles_per_block_offset;
     for (int i = 0; i < params.numCircles; i++) {
-        printf("%d ", circles_per_block_offset[i]);
+        printf("%d ", circles_per_block_start[i]);
     }
     printf("\n");
 
