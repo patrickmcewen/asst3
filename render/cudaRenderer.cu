@@ -62,8 +62,8 @@ __constant__ float  cuConstNoise1DValueTable[256];
 #define COLOR_MAP_SIZE 5
 __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
-#define XX 491
-#define YY 205
+#define XX 251
+#define YY 61
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
