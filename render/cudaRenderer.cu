@@ -914,8 +914,8 @@ CudaRenderer::render() {
     }
 
     cudaCheckError(cudaDeviceSynchronize());*/
-    int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
-    int* circles_per_block_start = print_data2 + circles_per_block_offset;
+    circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
+    circles_per_block_start = print_data2 + circles_per_block_offset;
     printf("printing circles for specific block\n");
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
