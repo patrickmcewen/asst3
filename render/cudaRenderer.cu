@@ -492,7 +492,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
     bool check_pixel = false;
-    if (x == 491 && y == 205) {
+    if (x == XX && y == YY) {
         printf("circle numbers: %d\n", total_pairs_val);
         check_pixel = true;
     }
@@ -936,8 +936,8 @@ CudaRenderer::render() {
 
     float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
-    float4* data = (float4*)(&image_data_print[4 * (yy * params.imageWidth + xx)]);
-    printf("y = %d (row), x = %d (column): %f, %f, %f\n", yy, xx, data->x, data->y, data->z);
+    float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
+    printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);
     cudaDeviceSynchronize();
 }
 
