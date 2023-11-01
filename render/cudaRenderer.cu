@@ -497,8 +497,9 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
-    for (int i = 0; i < total_pairs_val; i++) {
-        int circle_ind = circles_per_block_start[i];
+    for (int i = 0; i < cuConstRendererParams.numCircles/*i < total_pairs_val*/; i++) {
+        //int circle_ind = circles_per_block_start[i];
+        int circle_ind = i;
         //printf("circle_index: %d\n", circle_ind);
         // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
