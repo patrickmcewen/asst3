@@ -595,6 +595,71 @@ __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
         //printf("total_pairs: %d\n", total_pairs[0]);
 }
 
+__global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
+    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
+    if (index + two_dplus1 - 1 >= N) return;
+    //printf("%d ", index + two_dplus1-1);
+    result[index+two_dplus1-1] += result[index+two_d-1];
+}
+
+__global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
+    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
+    if (index + two_dplus1 - 1 >= N) return;
+    //printf("%d ", index + two_dplus1-1);
+    int t = result[index + two_d - 1];
+    result[index + two_d - 1] = result[index + two_dplus1 - 1];
+    result[index + two_dplus1 - 1] += t;
+
+}
+
+__global__ void zero_last_elem(int* result, int N) {
+    int index = (blockIdx.x * blockDim.x + threadIdx.x);
+    if (index == 0) {
+        result[N-1] = 0;
+    }
+}
+
+void exclusive_scan(int* input, int N, int* result)
+{
+
+    // CS149 TODO:
+    //
+    // Implement your exclusive scan implementation here.  Keep in
+    // mind that although the arguments to this function are device
+    // allocated arrays, this is a function that is running in a thread
+    // on the CPU.  Your implementation will need to make multiple calls
+    // to CUDA kernel functions (that you must write) to implement the
+    // scan.
+    N = nextPow2(N);
+    int arrSize = sizeof(float) * N;
+
+    cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
+    //printf("copied memory from input to result\n");
+    for (int two_d = 1; two_d <= N/2; two_d *= 2) {
+        int two_dplus1 = 2*two_d;
+        int numThreads = N / two_dplus1;
+        dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
+        dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
+        upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
+        cudaDeviceSynchronize();
+        //printf("finished one upsweep\n");
+    }
+    zero_last_elem<<<1, 1>>>(result, N);
+    cudaDeviceSynchronize();
+    //printf("finished upsweep, starting downsweep\n");
+    for (int two_d = N/2; two_d >= 1; two_d /= 2) {
+        int two_dplus1 = 2*two_d;
+        int numThreads = N / two_dplus1;
+        dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
+        dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
+        downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
+        cudaDeviceSynchronize();
+        //printf("finished one downsweep\n");
+    }
+    //printf("finished downsweep\n");
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -854,13 +919,14 @@ CudaRenderer::render() {
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             //printf("x: %d, y: %d\n", x, y);
-            dim3 blockDimScan(256, 1);
-            dim3 gridDimScan((params.pow2Circles + blockDimScan.x - 1) / blockDimScan.x);
+            dim3 blockDimScan(params.pow2Circles, 1);
+            dim3 gridDimScan(1);
             volatile uint* prefixSumScratch = nullptr;
             cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
+            exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
+            //kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
         }
         //printf("\n");
     }
