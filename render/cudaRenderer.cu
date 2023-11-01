@@ -362,7 +362,7 @@ __global__ void kernelAdvanceSnowflake() {
 // pixel from the circle.  Update of the image is done in this
 // function.  Called by kernelRenderCircles()
 __device__ __inline__ void
-shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
+shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool check_pixel) {
 
     float diffX = p.x - pixelCenter.x;
     float diffY = p.y - pixelCenter.y;
@@ -416,6 +416,11 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     newColor.y = alpha * rgb.y + oneMinusAlpha * existingColor.y;
     newColor.z = alpha * rgb.z + oneMinusAlpha * existingColor.z;
     newColor.w = alpha + existingColor.w;
+
+    if (check_pixel) {
+        printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
+        printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
+    }
 
     // global memory write
     *imagePtr = newColor;
@@ -484,8 +489,10 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
+    check_pixel = false;
     if (x == 205 && y == 389) {
         printf("circle numbers: %d\n", total_pairs_val);
+        check_pixel = true;
     }
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
@@ -508,7 +515,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         // for all pixels in the bonding box
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                             invHeight * (static_cast<float>(y) + 0.5f));
-        shadePixel(i, pixelCenterNorm, p, imgPtr);
+        shadePixel(i, pixelCenterNorm, p, imgPtr, check_pixel);
     }
 }
 
