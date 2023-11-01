@@ -932,6 +932,7 @@ CudaRenderer::render() {
         printf("%d ", circles_per_block_start[i]);
     }
     printf("\n");
+    printf("total circles for this one: %d", *total_pairs_print);
 
 
     // pixel parallel only
