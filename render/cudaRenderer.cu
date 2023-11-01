@@ -545,13 +545,14 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     // screen coordinates, so it's clamped to the edges of the screen.
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
+            pixelX = x * cuConstRendererParams.blockDim_x;
 
             int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
 
-            float boxL = 1 - ((float)x * cuConstRendererParams.blockDim_x - 1) / (float)cuConstRendererParams.imageWidth;
-            float boxR = 1 - ((float)x * (cuConstRendererParams.blockDim_x + 1) + 1) / (float)cuConstRendererParams.imageWidth;
-            float boxT = 1 - ((float)y * cuConstRendererParams.blockDim_y + 1) / (float)cuConstRendererParams.imageHeight;
-            float boxB = 1 - ((float)y * (cuConstRendererParams.blockDim_y + 1) - 1) / (float)cuConstRendererParams.imageHeight;
+            float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
+            float boxR = ((float)(x+1) * (cuConstRendererParams.blockDim_x)) / (float)cuConstRendererParams.imageWidth;
+            float boxT = ((float)y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
+            float boxB = ((float)(y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
             //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
