@@ -62,6 +62,8 @@ __constant__ float  cuConstNoise1DValueTable[256];
 #define COLOR_MAP_SIZE 5
 __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
+#define XX 491
+#define YY 205
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
@@ -555,7 +557,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
             //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
             //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
             circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-            if (x == 491 / 16 && y == 205 / 16) {
+            if (x == XX / 16 && y == YY / 16) {
                 printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
                 printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
                 printf("result was %d for index %d\n", circles_per_block[circles_per_block_index], circle_index);
