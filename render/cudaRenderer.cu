@@ -522,7 +522,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }
-        shadePixel(i, pixelCenterNorm, p, imgPtr, check_pixel);
+        shadePixel(circle_ind, pixelCenterNorm, p, imgPtr, check_pixel);
     }
 }
 
