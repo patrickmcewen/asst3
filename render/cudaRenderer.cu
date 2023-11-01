@@ -543,12 +543,6 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
     float  rad = cuConstRendererParams.radius[circle_index];
 
-    short imageWidth = cuConstRendererParams.imageWidth;
-    short imageHeight = cuConstRendererParams.imageHeight;
-
-    float invWidth = 1.f / imageWidth;
-    float invHeight = 1.f / imageHeight;
-
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
@@ -876,6 +870,14 @@ CudaRenderer::render() {
 
     int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+
+    circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
+    circles_per_block_start = print_data + circles_per_block_offset;
+    printf("printing data after exclusive scans\n");
+    for (int i = 0; i < params.numCircles; i++) {
+        printf("%d ", circles_per_block_start[i]);
+    }
+    printf("\n");
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
