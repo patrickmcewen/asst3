@@ -871,6 +871,7 @@ CudaRenderer::render() {
     start = CycleTimer::currentSeconds();
     cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     double start_nomem = CycleTimer::currentSeconds();
+    thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //launch exclusive scans for each block
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
@@ -880,11 +881,10 @@ CudaRenderer::render() {
             //volatile uint* prefixSumScratch = nullptr;
             //cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
-            int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-            thrust::device_vector<int> cvec(circles_per_block_start, circles_per_block_start + params.pow2Circles);
+            int* circles_per_block_start = circles_per_block_host + circles_per_block_offset;
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
             //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
-            thrust::exclusive_scan(thrust::device, cvec.begin(), cvec.end(), cvec);
+            thrust::exclusive_scan(thrust::host, circles_per_block_start, circles_per_block_start + params.pow2Circles, circles_per_block_start);
         }
         //printf("\n");
     }
