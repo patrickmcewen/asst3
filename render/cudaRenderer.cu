@@ -600,7 +600,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
             int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
             int* input_start = input + circles_per_block_offset;
             int* output_start = output + circles_per_block_offset;
-            if (index < length - 1 && (input[index] < input[index+1])) {
+            if (index < length - 1 && (input_start[index] < input_start[index+1])) {
                 output_start[input_start[index]] = index;
             }
         }
