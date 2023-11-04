@@ -882,7 +882,7 @@ CudaRenderer::render() {
             int* circles_per_block_start = circles_per_block_host + circles_per_block_offset;
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
             //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
-            thrust::exclusive_scan(thrust::device, circles_per_block_start, circles_per_block_start + params.pow2Circles, circles_per_block_start);
+            thrust::exclusive_scan(thrust::host, circles_per_block_start, circles_per_block_start + params.pow2Circles, circles_per_block_start);
         }
         //printf("\n");
     }
