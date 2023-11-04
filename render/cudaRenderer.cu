@@ -63,8 +63,8 @@ __constant__ float  cuConstNoise1DValueTable[256];
 #define COLOR_MAP_SIZE 5
 __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
-#define XX 0
-#define YY 0
+#define XX 500
+#define YY 500
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
@@ -575,8 +575,15 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
         return;
     
     //int old_data = circles_per_block_start[index];
+
+    __shared__ uint prefixSumInput[BLOCKSIZE];
+    __shared__ uint prefixSumOutput[BLOCKSIZE];
+    __shared__ uint prefixSumScratch[BLOCKSIZE];
+
+    prefixSumInput[index] = circles_per_block_start[index];
     
-    circles_per_block_start[index] = warpScanExclusive(index, circles_per_block_start[index], prefixSumScratch, cuConstRendererParams.pow2Circles);
+    circles_per_block_start[index] = sharedMemExclusiveScan(index, prefixSumInput, prefixSumOutput, prefixSumScratch, BLOCKSIZE);
+    circles_per_block_start[index] = prefixSumOutput[index];
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
 
@@ -933,8 +940,8 @@ CudaRenderer::render() {
             cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-            exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
-            //kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
+            //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
         }
         //printf("\n");
     }
