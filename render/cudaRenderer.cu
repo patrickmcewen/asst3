@@ -533,6 +533,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 }
 
 
+
 // for each circle, loop over all blocks and check if the circle is contained inside
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -906,8 +907,10 @@ CudaRenderer::render() {
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
+    int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
 
     double start = CycleTimer::currentSeconds();
@@ -919,14 +922,14 @@ CudaRenderer::render() {
     double end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
 
-    int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     int xx = XX / 16;
     int yy = YY / 16;
     int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     int* circles_per_block_start = print_data_bound + circles_per_block_offset;
-    /*for (int i = 0; i < params.numCircles; i++) {
+    for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
     printf("\n");*/
@@ -959,12 +962,12 @@ CudaRenderer::render() {
     end = CycleTimer::currentSeconds();
     printf("time for exclusive scan: %f\n", end - start);
 
-    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    /*int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     circles_per_block_start = print_data + circles_per_block_offset;
-    /*printf("printing data after exclusive scans\n");
+    printf("printing data after exclusive scans\n");
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
@@ -997,11 +1000,11 @@ CudaRenderer::render() {
     end = CycleTimer::currentSeconds();
     printf("time for get repeats final: %f\n", end - start);
     
-    int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
+    /*int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(total_pairs_print, total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     int* print_data2 = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data2, circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-    /*printf("copied data\n");
+    printf("copied data\n");
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int total_pairs_offset = (y * params.gridDim_x) + x;
@@ -1046,9 +1049,9 @@ CudaRenderer::render() {
     end = CycleTimer::currentSeconds();
     printf("time to render pixels: %f\n", end - start);
 
-    float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
+    /*float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
-    printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);
+    printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);*/
 }
 
