@@ -605,7 +605,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
             int* output_start = output + circles_per_block_offset;
 
             if (index < length - 1 && (input_start[index] < input_start[index+1])) {
-                if (input_start[index] >= length - 1) {
+                if (input_start[index] >= length - 1 || input_start[index] < 0) {
                     printf("unexpected circle number\n");
                 }
                 output_start[input_start[index]] = index;
