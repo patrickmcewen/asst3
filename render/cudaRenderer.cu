@@ -838,7 +838,7 @@ CudaRenderer::render() {
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
-    int* flags = nullptr;
+    //int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
