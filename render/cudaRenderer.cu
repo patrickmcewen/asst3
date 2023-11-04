@@ -992,5 +992,8 @@ CudaRenderer::render() {
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
     float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
     printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);*/
+    cudaFree(circles_per_block);
+    //cudaFree(flags);
+    free(circles_per_block_host);
 }
 
