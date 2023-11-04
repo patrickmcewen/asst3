@@ -924,10 +924,8 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
 
     start = CycleTimer::currentSeconds();
-    dim3 blockDimRepeats(256, 1);
-    dim3 gridDimRepeats((params.pow2Circles + blockDimRepeats.x - 1) / blockDimRepeats.x);
 
-    get_repeats_final<<<gridDimRepeats, blockDimRepeats>>>(circles_per_block, circles_per_block, params.pow2Circles);
+    get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block, params.pow2Circles);
 
     /*for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
