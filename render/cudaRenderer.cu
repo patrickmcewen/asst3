@@ -840,7 +840,7 @@ CudaRenderer::render() {
     int* circles_per_block_final = nullptr;
     int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    //cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     double end = CycleTimer::currentSeconds();
@@ -925,7 +925,7 @@ CudaRenderer::render() {
 
     start = CycleTimer::currentSeconds();
 
-    get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block, params.pow2Circles);
+    get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block_final, params.pow2Circles);
 
     /*for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
@@ -982,7 +982,7 @@ CudaRenderer::render() {
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
     // go one thread per block instead of 1 thread per pixel
     start = CycleTimer::currentSeconds();
-    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block, total_pairs);
+    kernelRenderPixels<<<gridDim, blockDim>>>(circles_per_block_final, total_pairs);
 
     cudaCheckError(cudaDeviceSynchronize());
     end = CycleTimer::currentSeconds();
@@ -993,6 +993,7 @@ CudaRenderer::render() {
     float4* data = (float4*)(&image_data_print[4 * (YY * params.imageWidth + XX)]);
     printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);*/
     cudaFree(circles_per_block);
+    cudaFree(circles_per_block_final);
     //cudaFree(flags);
     free(circles_per_block_host);
 }
