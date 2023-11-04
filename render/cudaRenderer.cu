@@ -919,7 +919,7 @@ CudaRenderer::render() {
     cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     double end = CycleTimer::currentSeconds();
-    printf("time to alloc starting mem: %f\n", end - start);
+    //printf("time to alloc starting mem: %f\n", end - start);
 
     start = CycleTimer::currentSeconds();
 
@@ -928,7 +928,7 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
 
     end = CycleTimer::currentSeconds();
-    printf("time for bounding circles: %f\n", end - start);
+    //printf("time for bounding circles: %f\n", end - start);
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -964,11 +964,11 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
     double end_nomem = CycleTimer::currentSeconds();
-    printf("time for exclusive scan without memcpy: %f\n", end_nomem- start_nomem);
+    //printf("time for exclusive scan without memcpy: %f\n", end_nomem- start_nomem);
     cudaMemcpy(circles_per_block, circles_per_block_host, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyHostToDevice);
 
     end = CycleTimer::currentSeconds();
-    printf("time for exclusive scan: %f\n", end - start);
+    //printf("time for exclusive scan: %f\n", end - start);
 
     /*int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -1008,7 +1008,7 @@ CudaRenderer::render() {
     }*/
     cudaCheckError(cudaDeviceSynchronize());
     end = CycleTimer::currentSeconds();
-    printf("time for get repeats final: %f\n", end - start);
+    //printf("time for get repeats final: %f\n", end - start);
     
     /*int* total_pairs_print = (int*)malloc(sizeof(int) * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(total_pairs_print, total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -1057,7 +1057,7 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
     end = CycleTimer::currentSeconds();
-    printf("time to render pixels: %f\n", end - start);
+    //printf("time to render pixels: %f\n", end - start);
 
     /*float* image_data_print = (float*)malloc(sizeof(float) * params.imageWidth * params.imageHeight * 4);
     cudaMemcpy(image_data_print, cudaDeviceImageData, sizeof(float) * params.imageWidth * params.imageHeight * 4, cudaMemcpyDeviceToHost);
