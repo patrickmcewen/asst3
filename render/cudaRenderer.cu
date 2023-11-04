@@ -595,7 +595,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y/*
 
 __global__ void get_repeats_final(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index > cuConstRendererParams.pow2Circles) {
+    if (index >= cuConstRendererParams.pow2Circles) {
         return;
     }
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
