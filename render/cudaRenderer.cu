@@ -595,7 +595,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y/*
 
 __global__ void get_repeats_final(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= cuConstRendererParams.pow2Circles) {
+    if (index >= length-1) {
         return;
     }
     for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
@@ -603,6 +603,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
             int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
             int* input_start = input + circles_per_block_offset;
             int* output_start = output + circles_per_block_offset;
+
             if (index < length - 1 && (input_start[index] < input_start[index+1])) {
                 if (input_start[index] >= length) {
                     printf("unexpected circle number\n");
@@ -1016,7 +1017,7 @@ CudaRenderer::render() {
     dim3 blockDimRepeats(256, 1);
     dim3 gridDimRepeats((params.pow2Circles + blockDimRepeats.x - 1) / blockDimRepeats.x);
 
-    get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block_final, params.pow2Circles);
+    get_repeats_final<<<gridDimRepeats, blockDimRepeats>>>(circles_per_block, circles_per_block_final, params.pow2Circles);
 
     /*for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
