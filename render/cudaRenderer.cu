@@ -608,16 +608,17 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
 }
 
 __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
-    for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
-        for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
-            int offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
-            int* input_start = input + offset;
-            int* total_pairs_start = total_pairs + (cuConstRendererParams.gridDim_x * y) + x;
-            total_pairs_start[0] = input_start[length-1];
-        }
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (y > cuConstRendererParams.gridDim_y || x > cuConstRendererParams.gridDim_x) {
+        return;
     }
-    //if (total_pairs[0] > 0)
-        //printf("total_pairs: %d\n", total_pairs[0]);
+
+    int offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
+    int* input_start = input + offset;
+    int* total_pairs_start = total_pairs + (cuConstRendererParams.gridDim_x * y) + x;
+    total_pairs_start[0] = input_start[length-1];
 }
 
 __global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
@@ -992,8 +993,9 @@ CudaRenderer::render() {
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
 
 
-
-    get_total_pairs<<<1, 1>>>(circles_per_block, params.pow2Circles, total_pairs);
+    dim3 blockDimPairs(16, 16);
+    dim3 gridDimPairs((params.gridDim_x + blockDimPairs.x + 1) / blockDimPairs.x, (params.gridDim_y + blockDimPairs.y + 1) / blockDimPairs.y);
+    get_total_pairs<<<gridDimPairs, blockDimPairs>>>(circles_per_block, params.pow2Circles, total_pairs);
 
     /*for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
