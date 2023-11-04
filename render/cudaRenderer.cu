@@ -993,8 +993,8 @@ CudaRenderer::render() {
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
 
 
-    dim3 blockDimPairs(16, 16);
-    dim3 gridDimPairs((params.gridDim_x + blockDimPairs.x + 1) / blockDimPairs.x, (params.gridDim_y + blockDimPairs.y + 1) / blockDimPairs.y);
+    dim3 blockDimPairs(1, 1);
+    dim3 gridDimPairs(params.gridDim_x, params.gridDim_y);
     get_total_pairs<<<gridDimPairs, blockDimPairs>>>(circles_per_block, params.pow2Circles, total_pairs);
 
     /*for (int x = 0; x < params.gridDim_x; x++) {
