@@ -536,7 +536,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 
 
 // for each circle, loop over all blocks and check if the circle is contained inside
-__global__ void kernelBoundCircles(thrust::device_vector<int>& circles_per_block) {
+__global__ void kernelBoundCircles(thrust::device_vector<int> circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
