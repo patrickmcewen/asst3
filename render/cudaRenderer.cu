@@ -596,8 +596,14 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y/*
 __global__ void get_repeats_final(int* input, int* output, int length) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < length - 1 && (input[index] < input[index+1])) {
-        output[input[index]] = index;
-        //printf("marked a repeat\n");
+        for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
+            for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
+                int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
+                int* input_start = input + circles_per_block_offset;
+                int* output = output + circles_per_block_offset;
+                output[input[index]] = index;
+            }
+        }
     }
 }
 
@@ -987,6 +993,8 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
 
     start = CycleTimer::currentSeconds();
+
+    get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block_final, params.pow2Circles);
 
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
