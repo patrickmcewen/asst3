@@ -1013,6 +1013,8 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
 
     start = CycleTimer::currentSeconds();
+    dim3 blockDimRepeats(256, 1);
+    dim3 gridDimRepeats((params.pow2Circles + blockDimRepeats.x - 1) / blockDimRepeats.x);
 
     get_repeats_final<<<gridDimCircles, blockDimCircles>>>(circles_per_block, circles_per_block_final, params.pow2Circles);
 
