@@ -568,7 +568,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     }
 }
 
-__global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, volatile uint* prefixSumScratch) {
+__global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y/*, volatile uint* prefixSumScratch*/) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (index >= cuConstRendererParams.pow2Circles)
@@ -582,7 +582,7 @@ __global__ void kernelExclusiveScan(int* circles_per_block_start, int x, int y, 
 
     prefixSumInput[index] = circles_per_block_start[index];
     
-    circles_per_block_start[index] = sharedMemExclusiveScan(index, prefixSumInput, prefixSumOutput, prefixSumScratch, BLOCKSIZE);
+    sharedMemExclusiveScan(index, prefixSumInput, prefixSumOutput, prefixSumScratch, BLOCKSIZE);
     circles_per_block_start[index] = prefixSumOutput[index];
     //if (circles_per_block_start[index])
         //printf("warp scan result for index %d is %d\n", index, circles_per_block_start[index]);
@@ -936,12 +936,12 @@ CudaRenderer::render() {
             //printf("x: %d, y: %d\n", x, y);
             dim3 blockDimScan(params.pow2Circles, 1);
             dim3 gridDimScan(1);
-            volatile uint* prefixSumScratch = nullptr;
-            cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
+            //volatile uint* prefixSumScratch = nullptr;
+            //cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y, prefixSumScratch);
+            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y);
         }
         //printf("\n");
     }
