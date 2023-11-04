@@ -536,7 +536,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 
 
 // for each circle, loop over all blocks and check if the circle is contained inside
-__global__ void kernelBoundCircles(thrust::device_vector<int> circles_per_block) {
+__global__ void kernelBoundCircles(int* circles_per_block) {
     int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
@@ -838,9 +838,7 @@ CudaRenderer::render() {
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
-    thrust::device_vector<int> cvec(params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_final = nullptr;
-    thrust::device_vector<int> cvec_final(params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
@@ -851,7 +849,7 @@ CudaRenderer::render() {
 
     start = CycleTimer::currentSeconds();
 
-    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(cvec);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
 
