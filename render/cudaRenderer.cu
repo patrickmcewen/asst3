@@ -908,7 +908,7 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
-
+    double start = CycleTimer::currentSeconds();
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
@@ -918,14 +918,16 @@ CudaRenderer::render() {
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    double end = CycleTimer::currentSeconds();
+    printf("time to alloc starting mem: %f\n", end - start);
 
-    double start = CycleTimer::currentSeconds();
+    start = CycleTimer::currentSeconds();
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
 
     cudaCheckError(cudaDeviceSynchronize());
 
-    double end = CycleTimer::currentSeconds();
+    end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
