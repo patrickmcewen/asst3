@@ -612,7 +612,7 @@ __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
         for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
             int offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
             int* input_start = input + offset;
-            int* total_pairs_start = total_pairs + offset;
+            int* total_pairs_start = total_pairs + (cuConstRendererParams.gridDim_x * y) + x;
             total_pairs_start[0] = input_start[length-1];
         }
     }
