@@ -67,6 +67,7 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
+#define BLOCKSIZE 256
 #define SCAN_BLOCK_DIM   BLOCKSIZE  // needed by sharedMemExclusiveScan implementation
 #include "noiseCuda.cu_inl"
 #include "lookupColor.cu_inl"
@@ -74,7 +75,6 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "exclusiveScan.cu_inl"
 
 #define THREADS_PER_BLOCK 256
-#define BLOCKSIZE 256
 
 #define DEBUG
 
