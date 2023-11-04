@@ -14,6 +14,8 @@
 #include "sceneLoader.h"
 #include "util.h"
 #include "cycleTimer.h"
+#include <thrust/scan.h>
+#include <thrust/execution_policy.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Putting all the cuda kernels here
@@ -941,7 +943,8 @@ CudaRenderer::render() {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
-            kernelExclusiveScan<<<gridDimScan, blockDimScan>>>(circles_per_block_start, x, y);
+            //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
+            thrust::exclusive_scan(thrust::host, circles_per_block_start, circles_per_block_start + params.pow2Circles, circles_per_block_start);
         }
         //printf("\n");
     }
