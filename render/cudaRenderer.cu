@@ -582,7 +582,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
             int* input_start = input + circles_per_block_offset;
             int* output_start = output + circles_per_block_offset;
             if (index < length - 1 && (input_start[index] < input_start[index+1])) {
-                printf("%d, %d\n", index, input_start[index]);
+                //printf("%d, %d\n", index, input_start[index]);
                 output_start[input_start[index]] = index;
             }
         }
@@ -840,8 +840,8 @@ CudaRenderer::render() {
     int* circles_per_block_final = nullptr;
     int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    //cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    //cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     double end = CycleTimer::currentSeconds();
     printf("time to alloc starting mem: %f\n", end - start);
