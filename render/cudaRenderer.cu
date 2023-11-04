@@ -926,14 +926,14 @@ CudaRenderer::render() {
     int yy = YY / 16;
     int circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     int* circles_per_block_start = print_data_bound + circles_per_block_offset;
-    for (int i = 0; i < params.numCircles; i++) {
+    /*for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     start = CycleTimer::currentSeconds();
     cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-
+    double start_nomem = CycleTimer::currentSeconds();
     //launch exclusive scans for each block
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
@@ -952,6 +952,8 @@ CudaRenderer::render() {
     }
 
     cudaCheckError(cudaDeviceSynchronize());
+    double end_nomem = CycleTimer::currentSeconds();
+    print("time for exclusive scan without memcpy: %f\n", end_nomem- start_nomem);
     cudaMemcpy(circles_per_block, circles_per_block_host, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyHostToDevice);
 
     end = CycleTimer::currentSeconds();
