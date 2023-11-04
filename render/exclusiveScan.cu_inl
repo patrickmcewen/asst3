@@ -21,6 +21,8 @@
 // ================= USAGE (in cudaRenderer.cu) =====================
 
 // at the top of the file:
+
+// #define SCAN_BLOCK_DIM   BLOCKSIZE  // needed by sharedMemExclusiveScan implementation
 // #include "exclusiveScan.cu_inl"
 
 // ...
@@ -53,6 +55,7 @@ warpScanInclusive(int threadIndex, uint idata, volatile uint *s_Data, uint size)
     // Note some of the calculations are obscure because they are optimized.
     // For example, (threadIndex & (size - 1)) computes threadIndex % size,
     // which works, assuming size is a power of 2.
+
     uint pos = 2 * threadIndex - (threadIndex & (size - 1));
     s_Data[pos] = 0;
     pos += size;
@@ -68,7 +71,7 @@ inline __device__ uint warpScanExclusive(int threadIndex, uint idata, volatile u
     return warpScanInclusive(threadIndex, idata, sScratch, size) - idata;
 }
 
-/*__inline__ __device__ void
+__inline__ __device__ void
 sharedMemExclusiveScan(int threadIndex, uint* sInput, uint* sOutput, volatile uint* sScratch, uint size)
 {
     if (size > WARP_SIZE) {
@@ -105,4 +108,5 @@ sharedMemExclusiveScan(int threadIndex, uint* sInput, uint* sOutput, volatile ui
         uint idata = sInput[threadIndex];
         sOutput[threadIndex] = warpScanExclusive(threadIndex, idata, sScratch, size);
     }
-}*/
+}
+
