@@ -608,7 +608,14 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
 }
 
 __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
-    total_pairs[0] = input[length-1];
+    for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
+        for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
+            int offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
+            int* input_start = input + offset;
+            int* total_pairs_start = total_pairs + offset;
+            total_pairs_start[(y * cuConstRendererParams.gridDim_x) + x] = input_start[length-1];
+        }
+    }
     //if (total_pairs[0] > 0)
         //printf("total_pairs: %d\n", total_pairs[0]);
 }
@@ -984,11 +991,12 @@ CudaRenderer::render() {
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
 
+    get_total_pairs<<<1, 1>>>(circles_per_block, params.pow2Circles, total_pairs);
+
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-            get_total_pairs<<<1, 1>>>(circles_per_block_start, params.pow2Circles, total_pairs + (y * params.gridDim_x) + x);
         }
     }
 
