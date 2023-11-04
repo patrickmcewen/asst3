@@ -1023,16 +1023,16 @@ CudaRenderer::render() {
             printf("\n");
         }
         if (x > params.gridDim_x / 2) break;
-    }*/
+    }
 
     circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     circles_per_block_start = print_data2 + circles_per_block_offset;
-    /*printf("printing circles for specific block\n");
+    printf("printing circles for specific block\n");
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
-    printf("\n");*/
-    printf("total circles for this one: %d", *total_pairs_print);
+    printf("\n");
+    printf("total circles for this one: %d", *total_pairs_print);*/
 
 
     // pixel parallel only
