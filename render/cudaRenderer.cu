@@ -80,7 +80,7 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
 #define THREADS_PER_BLOCK 256
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
