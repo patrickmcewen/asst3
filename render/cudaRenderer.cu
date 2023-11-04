@@ -908,6 +908,7 @@ CudaRenderer::render() {
     int* circles_per_block_final = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
 
     double start = CycleTimer::currentSeconds();
 
@@ -930,8 +931,9 @@ CudaRenderer::render() {
     }
     printf("\n");
 
-
     start = CycleTimer::currentSeconds();
+    cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+
     //launch exclusive scans for each block
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
@@ -941,7 +943,7 @@ CudaRenderer::render() {
             //volatile uint* prefixSumScratch = nullptr;
             //cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
-            int* circles_per_block_start = circles_per_block + circles_per_block_offset;
+            int* circles_per_block_start = circles_per_block_host + circles_per_block_offset;
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
             //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
             thrust::exclusive_scan(thrust::host, circles_per_block_start, circles_per_block_start + params.pow2Circles, circles_per_block_start);
@@ -950,6 +952,7 @@ CudaRenderer::render() {
     }
 
     cudaCheckError(cudaDeviceSynchronize());
+    cudaMemcpy(circles_per_block, circles_per_block_host, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyHostToDevice);
 
     end = CycleTimer::currentSeconds();
     printf("time for exclusive scan: %f\n", end - start);
