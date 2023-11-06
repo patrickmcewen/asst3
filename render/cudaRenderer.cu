@@ -726,7 +726,7 @@ __global__ void kernelSharedMem() {
 
         for (int j = 0; j < numCircles; j++) {
             if (thread_idx == 0 && x == 0 && y == 0) {
-                printf("rendering at 0 0\n");
+                printf("rendering at 0 0, circle index %d\n", circleInds[j]);
             }
             renderPixel(x, y, circleInds[j]);
         }
