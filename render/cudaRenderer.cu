@@ -866,6 +866,10 @@ CudaRenderer::render() {
 
     cudaCheckError(cudaDeviceSynchronize());
 
+    thrust::device_ptr<int> flags_ptr(flags);
+    thrust::exclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
+
+    cudaCheckError(cudaDeviceSynchronize());
     int* flags_print = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(flags_print, flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
@@ -894,7 +898,6 @@ CudaRenderer::render() {
     double start_nomem = CycleTimer::currentSeconds();
     //thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //launch exclusive scans for each block
-    
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             //printf("x: %d, y: %d\n", x, y);
