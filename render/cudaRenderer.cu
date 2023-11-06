@@ -550,9 +550,14 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
     
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
+         int index3 = 3 * i;
+        // read position and radius
+        //printf("getting p and rad\n");
+        float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
+        float  rad = cuConstRendererParams.radius[i];
         //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
         //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
-        circles_per_block[circles_per_block_start + i] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+        circles_per_block_start[i] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
     }
 
     /*
