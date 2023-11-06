@@ -686,18 +686,19 @@ __global__ void kernelSharedMem() {
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
         if (circle_ind > cuConstRendererParams.numCircles) {
-            circles[circle_ind] = 0;
+            circles[thread_idx] = 0;
         } else {
             int index3 = 3 * circle_ind;
             float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
             float  rad = cuConstRendererParams.radius[circle_ind];
-            circles[circle_ind] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+            circles[thread_idx] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
         }
 
         __syncthreads();
         if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with circle bounding\n");
         }
+
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
