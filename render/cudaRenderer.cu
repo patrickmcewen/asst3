@@ -604,7 +604,7 @@ __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
     total_pairs_start[0] = input_start[length-1];
 }
 
-__global__ void create_flags(int* flags) {
+__global__ void kernelCreateFlags(int* flags) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y) {
         return;
@@ -894,7 +894,7 @@ CudaRenderer::render() {
     double start_nomem = CycleTimer::currentSeconds();
     //thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //launch exclusive scans for each block
-    thrust::
+    
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             //printf("x: %d, y: %d\n", x, y);
