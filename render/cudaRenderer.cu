@@ -516,7 +516,6 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         printf("total number of circles: %d\n", total_pairs_val);
         check_pixel = true;
     }*/
-    // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
     for (int i = 0; i < total_pairs_val; i++) {
@@ -529,6 +528,36 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     }
 }
 
+__global__ void kernelRenderPixelsAllParallel() {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
+
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
+        return;
+    }
+    //bool check_pixel = false;
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+
+    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    // for all pixels in the bonding box
+    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                        invHeight * (static_cast<float>(y) + 0.5f));
+    for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
+        int circle_ind = circles_per_block_start[i];
+        float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
+        /*if (check_pixel) {
+            printf("circle ind: %d\n", circle_ind);
+        }*/
+        shadePixel(circle_ind, pixelCenterNorm, p, imgPtr, check_pixel);
+    }
+}
 
 
 // for each circle, loop over all blocks and check if the circle is contained inside
@@ -838,6 +867,12 @@ CudaRenderer::render() {
 
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
+
+    if (params.numCircles < 5) {
+        kernelRenderPixelsAllParallel<<<gridDim, blockDim>>>();
+        cudaDeviceSynchronize();
+        return;
+    }
 
     double start = CycleTimer::currentSeconds();
 
