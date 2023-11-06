@@ -660,7 +660,7 @@ __global__ void kernelCreateFlags(int* flags) {
     int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* flag_start = flags + circles_per_block_offset; 
-    for (int i = thread_idx; i < cuConstRendererParams.pow2Circles; i++) {
+    for (int i = thread_idx; i < cuConstRendererParams.pow2Circles; i+= BLOCKSIZE) {
         flag_start[thread_idx] = thread_idx == 0;
     }
 
