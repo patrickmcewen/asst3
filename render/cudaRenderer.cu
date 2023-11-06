@@ -642,6 +642,79 @@ __global__ void kernelCreateFlags(int* flags) {
     }
 }
 
+inline __device__ void renderPixel(int x, int y, int circle_ind) {
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+
+    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    // for all pixels in the bonding box
+    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                        invHeight * (static_cast<float>(y) + 0.5f));
+    float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
+    shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
+}
+
+__global__ void kernelSharedMem() {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
+        return;
+    }
+    int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
+    __shared__ int circles[BLOCKSIZE];
+    __shared__ int circleInds[BLOCKSIZE];
+    __shared__ int sScratch[BLOCKSIZE * 2];
+    __shared__ int numCircles;
+
+    __shared__ float boxL = blockIdx.x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    __shared__ float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    __shared__ float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    __shared__ float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+
+    __shared__ int offset = 0;
+    // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
+    for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+        // bound circles, creating binary array
+        int index3 = 3 * i;
+        float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
+        float  rad = cuConstRendererParams.radius[i];
+        circles[i] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+
+        __syncthreads();
+
+        // scan binary circles array
+        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
+
+        __syncthreads();
+
+        // get correct circle indices and total number of circles
+        if (thread_idx < BLOCKSIZE - 1) {
+            if (circles[thread_idx] < circles[thread_idx + 1]) {
+                circleInds[circles[thread_idx]] = thread_idx + offset;
+            }
+        } else {
+            numCircles = circles[BLOCKSIZE-1]
+        }
+
+        __syncthreads();
+
+        if (thread_idx < numCircles) {
+            renderPixel(x, y, circleInds[thread_idx]);
+        }
+
+        if (thread_idx == 0) {
+            offset += numCircles;
+        }
+
+        __syncthreads();
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -867,6 +940,9 @@ CudaRenderer::render() {
 
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
+
+    kernelSharedMem<<<gridDim, blockDim>>>();
+    return;
 
     if (params.numCircles < 100) {
         kernelRenderPixelsAllParallel<<<gridDim, blockDim>>>();
