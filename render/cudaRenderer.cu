@@ -909,9 +909,6 @@ CudaRenderer::render() {
 
     kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
 
-    thrust::device_ptr<int> flags_ptr(flags);
-    thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
-
     cudaCheckError(cudaDeviceSynchronize());
 
     end = CycleTimer::currentSeconds();
@@ -919,7 +916,9 @@ CudaRenderer::render() {
     dim3 blockDimFlags(256, 1);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimFlags.x - 1) / blockDimFlags.x);
     kernelCreateFlags<<<gridDimFlags, blockDimFlags>>>(flags);
-
+    cudaCheckError(cudaDeviceSynchronize());
+    thrust::device_ptr<int> flags_ptr(flags);
+    thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
     cudaCheckError(cudaDeviceSynchronize());
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
