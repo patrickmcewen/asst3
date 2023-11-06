@@ -678,35 +678,35 @@ __global__ void kernelSharedMem() {
 
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = 0; i < cuConstRendererParams.numCircles - thread_idx; i+= BLOCKSIZE-1) {
+    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         // size of the exclusive scan we will be doing
-        int sz = BLOCKSIZE;
-        if (sz > cuConstRendererParams.numCircles-i) {
-            sz = cuConstRendererParams.numCircles-i;
-        }
+        int circle_ind = i + thread_idx;
         //printf("size: %d\n", sz);
         // bound circles, creating binary array
-        int index3 = 3 * (i + thread_idx);
-        float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-        float  rad = cuConstRendererParams.radius[(i + thread_idx)];
-        circles[(i + thread_idx)] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+        if (circle_ind > cuConstRendererParams.numCircles) {
+            circles[circle_ind] = 0;
+        } else {
+            int index3 = 3 * circle_ind;
+            float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
+            float  rad = cuConstRendererParams.radius[circle_ind];
+            circles[circle_ind] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+        }
 
         __syncthreads();
 
         // scan binary circles array
-        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, sz);
+        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
 
         __syncthreads();
         printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
-        if (thread_idx < sz-1) {
+        if (thread_idx < BLOCKSIZE-1) {
             if (circles[thread_idx] < circles[thread_idx + 1]) {
                 circleInds[circles[thread_idx]] = thread_idx + offset;
             }
-        } 
-        if (thread_idx == 0) {
-            numCircles = circles[sz-1];
+        } else {
+            numCircles = circles[BLOCKSIZE-1];
             printf("numCircles: %d\n", numCircles);
         }
 
