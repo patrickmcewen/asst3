@@ -550,12 +550,11 @@ __global__ void kernelRenderPixelsAllParallel() {
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
-        int circle_ind = circles_per_block_start[i];
-        float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
+        float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }*/
-        shadePixel(circle_ind, pixelCenterNorm, p, imgPtr, check_pixel);
+        shadePixel(i, pixelCenterNorm, p, imgPtr, check_pixel);
     }
 }
 
