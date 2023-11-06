@@ -950,5 +950,6 @@ CudaRenderer::render() {
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
 
     kernelSharedMem<<<gridDim, blockDim>>>();
+    cudaCheckError(cudaDeviceSynchronize());
 }
 
