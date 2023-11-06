@@ -500,6 +500,18 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
     bool check_pixel = false;
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+
+    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    // for all pixels in the bonding box
+    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                        invHeight * (static_cast<float>(y) + 0.5f));
     /*if (x == XX && y == YY) {
         printf("total number of circles: %d\n", total_pairs_val);
         check_pixel = true;
@@ -513,19 +525,6 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         //printf("circle_index: %d\n", circle_ind);
         // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-
-        // compute the bounding box of the circle. The bound is in integer
-        // screen coordinates, so it's clamped to the edges of the screen.
-        short imageWidth = cuConstRendererParams.imageWidth;
-        short imageHeight = cuConstRendererParams.imageHeight;
-
-        float invWidth = 1.f / imageWidth;
-        float invHeight = 1.f / imageHeight;
-
-        float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
-        // for all pixels in the bonding box
-        float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
-                                            invHeight * (static_cast<float>(y) + 0.5f));
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }*/
