@@ -698,8 +698,10 @@ __global__ void kernelSharedMem() {
             if (circles[thread_idx] < circles[thread_idx + 1]) {
                 circleInds[circles[thread_idx]] = thread_idx + offset;
             }
-        } else {
+        } 
+        if (thread_idx == 0) {
             numCircles = circles[BLOCKSIZE-1];
+            printf("numCircles: %d\n", numCircles);
         }
 
         __syncthreads();
