@@ -684,7 +684,7 @@ __global__ void kernelSharedMem() {
         if (sz > cuConstRendererParams.numCircles-i) {
             sz = cuConstRendererParams.numCircles-i;
         }
-        printf("size: %d\n", sz);
+        //printf("size: %d\n", sz);
         // bound circles, creating binary array
         int index3 = 3 * (i + thread_idx);
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
