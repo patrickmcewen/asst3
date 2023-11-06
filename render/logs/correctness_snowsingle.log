@@ -1,5 +1,7 @@
 Rendering to 1024x1024 image
+Loaded data for 100000 circles from snow.par
 Loaded scene with 100000 circles
+Loaded data for 100000 circles from snow.par
 Loaded scene with 100000 circles
 ---------------------------------------------------------
 Initializing CUDA for CudaRenderer
@@ -12,22 +14,22 @@ Device 0: Tesla T4
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Dumping frames to output_xxx.ppm
-time to alloc starting mem: 0.001726
-time for bounding circles: 0.008505
-time to create flags: 0.000059
-time to scan flags: 0.005097
-time for exclusive scan: 0.007048
+time to alloc starting mem: 0.001729
+time for bounding circles: 0.007043
+time to create flags: 0.000050
+time to scan flags: 0.004631
+time for exclusive scan: 0.006700
 time for get total pairs: 0.000027
-time for get repeats final: 0.008124
-time to render pixels: 0.055440
+time for get repeats final: 0.006350
+time to render pixels: 0.001105
 Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1250 ms
+Clear:    0.1287 ms
 Advance:  0.0011 ms
-Render:   91.3633 ms
-Total:    91.4894 ms
-File IO:  83.6928 ms
+Render:   32.9765 ms
+Total:    33.1063 ms
+File IO:  82.3050 ms
 
-Overall:  4.9465 sec (note units are seconds)
+Overall:  0.4718 sec (note units are seconds)

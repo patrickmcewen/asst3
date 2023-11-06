@@ -1,6 +1,6 @@
 Rendering to 1024x1024 image
-Loaded scene with 3 circles
-Loaded scene with 3 circles
+Loaded scene with 25 circles
+Loaded scene with 25 circles
 ---------------------------------------------------------
 Initializing CUDA for CudaRenderer
 Found 1 CUDA devices
@@ -12,14 +12,22 @@ Device 0: Tesla T4
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Dumping frames to output_xxx.ppm
+time to alloc starting mem: 0.000024
+time for bounding circles: 0.000083
+time to create flags: 0.000024
+time to scan flags: 0.000107
+time for exclusive scan: 0.000081
+time for get total pairs: 0.000019
+time for get repeats final: 0.000028
+time to render pixels: 0.000229
 Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1245 ms
-Advance:  0.0010 ms
-Render:   0.1224 ms
-Total:    0.2479 ms
-File IO:  80.6665 ms
+Clear:    0.1288 ms
+Advance:  0.0169 ms
+Render:   0.6154 ms
+Total:    0.7610 ms
+File IO:  83.6361 ms
 
-Overall:  0.1064 sec (note units are seconds)
+Overall:  0.1432 sec (note units are seconds)
