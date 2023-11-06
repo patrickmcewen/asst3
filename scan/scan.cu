@@ -83,32 +83,25 @@ void exclusive_scan(int* input, int N, int* result)
     int arrSize = sizeof(float) * N;
 
     cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
-    //printf("copied memory from input to result\n");
     for (int two_d = 1; two_d <= N/2; two_d *= 2) {
-        int two_dplus1 = 2*two_d;
-        int numThreads = N / two_dplus1;
+        int two_d_plus1 = 2 * two_d;
+        int numThreads = N / two_d_plus1;
         dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
         dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
         upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
         cudaDeviceSynchronize();
-        //printf("finished one upsweep\n");
     }
     zero_last_elem<<<1, 1>>>(result, N);
     cudaDeviceSynchronize();
-    //printf("finished upsweep, starting downsweep\n");
     for (int two_d = N/2; two_d >= 1; two_d /= 2) {
-        int two_dplus1 = 2*two_d;
-        int numThreads = N / two_dplus1;
+        int two_d_plus1 = 2 * two_d;
+        int numThreads = N / two_d_plus1;
         dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
         dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
         downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
         cudaDeviceSynchronize();
-        //printf("finished one downsweep\n");
     }
-    //printf("finished downsweep\n");
-
 }
-
 
 //
 // cudaScan --
@@ -237,58 +230,34 @@ int find_repeats(int* device_input, int length, int* device_output) {
     // the actual array length.
 
     int length_2 = nextPow2(length);
-    int arrSize = length_2 * sizeof(int);
-
+    int num_flags = length_2 * sizeof(int);
     int* flags = nullptr;
     int* flag_scan = nullptr;
-    cudaMalloc(&flags, arrSize);
-    cudaMalloc(&flag_scan, arrSize);
+    int* total_pairs = nullptr;
+
+    cudaMalloc(&flags, num_flags);
+    cudaMalloc(&flag_scan, num_flags);
 
     dim3 numBlocks((int)std::ceil((double)length / THREADS_PER_BLOCK));
     dim3 threadsPerBlock((int)std::ceil((double)length / numBlocks.x));
-    //printf("%d blocks with %d threads per block\n", numBlocks.x, threadsPerBlock.x);
 
     mark_repeats<<<numBlocks, threadsPerBlock>>>(device_input, flags, length);
     cudaDeviceSynchronize();
 
-    /*int* host_flags = (int*)malloc(arrSize);
-    cudaMemcpy(host_flags, flags, arrSize, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < length; i++) {
-        printf("%d ", host_flags[i]);
-    }
-    printf("\n");*/
-
     exclusive_scan(flags, length, flag_scan);
     cudaDeviceSynchronize();
 
-    /*int* host_flags_scan = (int*)malloc(arrSize);
-    cudaMemcpy(host_flags_scan, flag_scan, arrSize, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < length; i++) {
-        printf("%d ", host_flags_scan[i]);
-    }
-    printf("\n");*/
-
-    int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int));
     get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs);
     cudaDeviceSynchronize();
 
     int* total_pairs_host = (int*)malloc(sizeof(int));
     cudaMemcpy(total_pairs_host, total_pairs, sizeof(int), cudaMemcpyDeviceToHost);
-
     get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
 
-    /*int* host_output = (int*)malloc(arrSize);
-    cudaMemcpy(host_output, device_output, arrSize, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < length; i++) {
-        printf("%d ", host_output[i]);
-    }
-    printf("\n");*/
-
     cudaFree(flags);
     cudaFree(flag_scan);
-
 
     return *total_pairs_host; 
 }
