@@ -680,11 +680,9 @@ __global__ void kernelSharedMem() {
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("i: %d, numcircles: %d", i, cuConstRendererParams.numCircles);
+            printf("i: %d, numcircles: %d\n", i, cuConstRendererParams.numCircles);
         }
-        // size of the exclusive scan we will be doing
         int circle_ind = i + thread_idx;
-        //printf("size: %d\n", sz);
         // bound circles, creating binary array
         if (circle_ind > cuConstRendererParams.numCircles) {
             circles[circle_ind] = 0;
@@ -696,6 +694,9 @@ __global__ void kernelSharedMem() {
         }
 
         __syncthreads();
+        if (thread_idx == 0 && x == 0 && y == 0) {
+            printf("done with circle bounding\n");
+        }
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
