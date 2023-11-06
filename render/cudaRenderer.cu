@@ -499,7 +499,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* circles_per_block_start = circles_per_block_final + circles_per_block_offset;
     int total_pairs_val = *(total_pairs + total_pairs_offset);
-    bool check_pixel = false;
+    //bool check_pixel = false;
     short imageWidth = cuConstRendererParams.imageWidth;
     short imageHeight = cuConstRendererParams.imageHeight;
 
@@ -519,11 +519,8 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     // dont launch kernel if num_circles_in_block = 0
     //printf("total pairs: %d", *total_pairs);
     //printf("x: %d, y: %d\n", x, y);
-    for (int i = 0; /*i < cuConstRendererParams.numCircles*/i < total_pairs_val; i++) {
+    for (int i = 0; i < total_pairs_val; i++) {
         int circle_ind = circles_per_block_start[i];
-        //int circle_ind = i;
-        //printf("circle_index: %d\n", circle_ind);
-        // read position and radius
         float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
@@ -551,7 +548,6 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
     
     int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
-    //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
     for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int index3 = 3 * i;
@@ -563,41 +559,6 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
         //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
         circles_per_block_start[i] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
     }
-
-
-    /*int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (circle_index >= cuConstRendererParams.numCircles)
-        return;
-
-    int index3 = 3 * circle_index;
-    
-    // read position and radius
-    //printf("getting p and rad\n");
-    float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-    float  rad = cuConstRendererParams.radius[circle_index];
-
-    // compute the bounding box of the circle. The bound is in integer
-    // screen coordinates, so it's clamped to the edges of the screen.
-    for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
-        for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
-
-            int circles_per_block_index = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x) + circle_index;
-
-            float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
-            float boxR = ((float)(x+1) * (cuConstRendererParams.blockDim_x)) / (float)cuConstRendererParams.imageWidth;
-            float boxB = ((float)y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
-            float boxT = ((float)(y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
-            //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
-            //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
-            circles_per_block[circles_per_block_index] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-            /*if (x == XX / 16 && y == YY / 16) {
-                printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
-                printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
-                printf("result was %d for index %d\n", circles_per_block[circles_per_block_index], circle_index);
-            }
-        }
-    }*/
 }
 
 __global__ void get_repeats_final(int* input, int* output, int length) {
@@ -619,18 +580,6 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
             output_start[input_start[i]] = i;
         }
     }
-    
-    /*for (int x = 0; x < cuConstRendererParams.gridDim_x; x++) {
-        for (int y = 0; y < cuConstRendererParams.gridDim_y; y++) {
-            int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x);
-            int* input_start = input + circles_per_block_offset;
-            int* output_start = output + circles_per_block_offset;
-            if (index < length - 1 && (input_start[index] < input_start[index+1])) {
-                //printf("%d, %d\n", index, input_start[index]);
-                output_start[input_start[index]] = index;
-            }
-        }
-    }*/
 }
 
 __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
@@ -662,15 +611,6 @@ __global__ void kernelCreateFlags(int* flags) {
     for (int i = thread_idx; i < cuConstRendererParams.pow2Circles; i+= BLOCKSIZE) {
         flag_start[thread_idx] = thread_idx == 0;
     }
-
-    /*int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y) {
-        return;
-    }
-    flags[index * cuConstRendererParams.pow2Circles] = index != 0;
-    for (int i = 1; i < cuConstRendererParams.pow2Circles; i++) {
-        flags[index * cuConstRendererParams.pow2Circles + i] = 0;
-    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -895,13 +835,6 @@ CudaRenderer::advanceAnimation() {
 
 void
 CudaRenderer::render() {
-    //incorrect implementation
-    // 256 threads per block is a healthy number
-    /*dim3 blockDim(256, 1);
-    dim3 gridDim((numCircles + blockDim.x - 1) / blockDim.x);
-
-    kernelRenderCircles<<<gridDim, blockDim>>>();
-    cudaDeviceSynchronize();*/
 
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
@@ -1021,7 +954,6 @@ CudaRenderer::render() {
     printf("total circles for this one: %d", *total_pairs_print);*/
 
 
-    // pixel parallel only
     //printf("blockDims: %d %d, gridDims: %d %d\n", blockDim.x, blockDim.y, gridDim.x, gridDim.y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
