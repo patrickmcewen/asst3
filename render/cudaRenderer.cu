@@ -614,7 +614,7 @@ __global__ void get_repeats_final(int* input, int* output, int length) {
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
     int* input_start = input + circles_per_block_offset; 
     int* output_start = output + circles_per_block_offset;
-    for (int i = thread_idx; i < cuConstRendererParams.numCircles - 1; i+= BLOCKSIZE) {
+    for (int i = thread_idx; i < length - 1; i+= BLOCKSIZE) {
         if (input_start[i] < input_start[i+1]) {
             //printf("%d, %d\n", index, input_start[index]);
             output_start[input_start[i]] = i;
