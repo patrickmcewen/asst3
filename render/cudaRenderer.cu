@@ -537,7 +537,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 
 // for each circle, loop over all blocks and check if the circle is contained inside
 __global__ void kernelBoundCircles(int* circles_per_block) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    /*int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z) * 8;
     //printf("circle_ind: %d\n", circle_ind);
@@ -562,10 +562,10 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
         //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
         //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
         circles_per_block_start[i] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-    }
+    }*/
 
 
-    /*int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
+    int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (circle_index >= cuConstRendererParams.numCircles)
         return;
@@ -595,9 +595,9 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
                 printf("top: %f, bottom: %f, left: %f, right: %f, p.x: %f, p.y: %f, rad: %f\n", boxT, boxB, boxL, boxR, p.x, p.y, rad);
                 printf("circle center: %f %f, and width: %f\n", p.x, p.y, rad);
                 printf("result was %d for index %d\n", circles_per_block[circles_per_block_index], circle_index);
-            }
+            }*/
         }
-    }*/
+    }
 }
 
 __global__ void get_repeats_final(int* input, int* output, int length) {
@@ -892,7 +892,7 @@ CudaRenderer::render() {
 
     printf("about to start circle bounding\n");
 
-    kernelBoundCircles<<<gridDimBound, blockDimBound>>>(circles_per_block);
+    kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
 
