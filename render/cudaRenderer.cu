@@ -922,9 +922,9 @@ CudaRenderer::render() {
 
     printf("about to start circle bounding\n");
 
-    kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
     kernelCreateFlags<<<gridDim, blockDim>>>(flags);
     cudaCheckError(cudaDeviceSynchronize());
+    kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
     thrust::device_ptr<int> flags_ptr(flags);
     thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
     cudaCheckError(cudaDeviceSynchronize());
