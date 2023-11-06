@@ -712,17 +712,14 @@ __global__ void kernelSharedMem() {
 
         __syncthreads();
 
-        for (int i = 0; i < numCircles; i++) {
+        for (int j = 0; j < numCircles; j++) {
             //printf("rendering at %d and %d\n", x, y);
-            renderPixel(x, y, circleInds[i]);
+            renderPixel(x, y, circleInds[j]);
         }
 
         offset += numCircles;
 
         __syncthreads();
-        if (thread_idx == 0) {
-            printf("looping back around\n");
-        }
     }
 }
 
