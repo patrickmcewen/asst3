@@ -867,7 +867,7 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
 
     thrust::device_ptr<int> flags_ptr(flags);
-    thrust::exclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
+    thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
 
     cudaCheckError(cudaDeviceSynchronize());
     int* flags_print = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
