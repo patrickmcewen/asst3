@@ -541,7 +541,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     int circle_ind = blockIdx.z * blockDim.z + threadIdx.z;
 
-    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y || circle_ind >= params.numCircles) {
+    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y || circle_ind >= cuConstRendererParams.numCircles) {
         return;
     }
     float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
