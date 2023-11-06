@@ -369,7 +369,7 @@ __global__ void kernelAdvanceSnowflake() {
 // pixel from the circle.  Update of the image is done in this
 // function.  Called by kernelRenderCircles()
 __device__ __inline__ void
-shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool check_pixel) {
+shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
     float diffX = p.x - pixelCenter.x;
     float diffY = p.y - pixelCenter.y;
@@ -380,7 +380,6 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr, bool
 
     // circle does not contribute to the image
     if (pixelDist > maxDist) {
-        //if (check_pixel) printf("circle %d not contributing to image\n", circleIndex);
         return;
     }
 
@@ -524,7 +523,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }*/
-        shadePixel(circle_ind, pixelCenterNorm, p, imgPtr, check_pixel);
+        shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
     }
 }
 
@@ -554,7 +553,7 @@ __global__ void kernelRenderPixelsAllParallel() {
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }*/
-        shadePixel(i, pixelCenterNorm, p, imgPtr, check_pixel);
+        shadePixel(i, pixelCenterNorm, p, imgPtr);
     }
 }
 
