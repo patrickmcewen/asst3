@@ -698,7 +698,7 @@ __global__ void kernelSharedMem() {
                 circleInds[circles[thread_idx]] = thread_idx + offset;
             }
         } else {
-            numCircles = circles[BLOCKSIZE-1]
+            numCircles = circles[BLOCKSIZE-1];
         }
 
         __syncthreads();
