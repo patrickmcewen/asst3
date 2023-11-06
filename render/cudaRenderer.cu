@@ -681,9 +681,9 @@ __global__ void kernelSharedMem() {
     for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         // size of the exclusive scan we will be doing
         int sz = BLOCKSIZE;
-        if (sz > cuConstRendererParams.numCircles-i-thread_idx) {
+        /*if (sz > cuConstRendererParams.numCircles-i-thread_idx) {
             sz = cuConstRendererParams.numCircles-i-thread_idx;
-        }
+        }*/
         // bound circles, creating binary array
         int index3 = 3 * i;
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
