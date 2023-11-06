@@ -716,14 +716,12 @@ __global__ void kernelSharedMem() {
             }
         } else {
             numCircles = circles_scanned[BLOCKSIZE-1];
-            if (x == 0 && y == 0) {
-                printf("numCircles: %d\n", numCircles);
-            }
         }
 
         __syncthreads();
         if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with index gathering\n");
+            printf("numCircles: %d\n", numCircles);
         }
 
         for (int j = 0; j < numCircles; j++) {
