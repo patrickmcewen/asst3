@@ -716,7 +716,9 @@ __global__ void kernelSharedMem() {
             }
         } else {
             numCircles = circles_scanned[BLOCKSIZE-1];
-            //printf("numCircles: %d\n", numCircles);
+            if (x == 0 && y == 0) {
+                printf("numCircles: %d\n", numCircles);
+            }
         }
 
         __syncthreads();
