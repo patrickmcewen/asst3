@@ -766,8 +766,8 @@ CudaRenderer::setup() {
     params.radius = cudaDeviceRadius;
     params.imageData = cudaDeviceImageData;
 
-    params.blockDim_x = 32;
-    params.blockDim_y = 32;
+    params.blockDim_x = 64;
+    params.blockDim_y = 64;
 
     params.gridDim_x = (params.imageWidth + params.blockDim_x - 1) / params.blockDim_x;
     params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
