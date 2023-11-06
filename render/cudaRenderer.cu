@@ -649,14 +649,29 @@ __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
 }
 
 __global__ void kernelCreateFlags(int* flags) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    //int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z);
+    //printf("circle_ind: %d\n", circle_ind);
+
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
+        return;
+    }
+    int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
+    int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
+    int* flag_start = flags + circles_per_block_offset; 
+    for (int i = thread_idx; i < cuConstRendererParams.pow2Circles; i++) {
+        flag_start[thread_idx] = thread_idx == 0;
+    }
+
+    /*int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y) {
         return;
     }
     flags[index * cuConstRendererParams.pow2Circles] = index != 0;
     for (int i = 1; i < cuConstRendererParams.pow2Circles; i++) {
         flags[index * cuConstRendererParams.pow2Circles + i] = 0;
-    }
+    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -913,9 +928,8 @@ CudaRenderer::render() {
 
     end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
-    dim3 blockDimFlags(256, 1);
-    dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimFlags.x - 1) / blockDimFlags.x);
-    kernelCreateFlags<<<gridDimFlags, blockDimFlags>>>(flags);
+
+    kernelCreateFlags<<<gridDim, blockDim>>>(flags);
     cudaCheckError(cudaDeviceSynchronize());
     thrust::device_ptr<int> flags_ptr(flags);
     thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
