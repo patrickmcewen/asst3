@@ -685,7 +685,7 @@ __global__ void kernelSharedMem() {
         }
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
-        if (circle_ind > cuConstRendererParams.numCircles) {
+        if (circle_ind >= cuConstRendererParams.numCircles) {
             circles[thread_idx] = 0;
         } else {
             int index3 = 3 * circle_ind;
