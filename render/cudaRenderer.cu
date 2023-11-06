@@ -678,18 +678,18 @@ __global__ void kernelSharedMem() {
 
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         // size of the exclusive scan we will be doing
         int sz = BLOCKSIZE;
-        if (sz > cuConstRendererParams.numCircles-i-thread_idx) {
-            sz = cuConstRendererParams.numCircles-i-thread_idx;
+        if (sz > cuConstRendererParams.numCircles-i) {
+            sz = cuConstRendererParams.numCircles-i;
         }
         printf("size: %d\n", sz);
         // bound circles, creating binary array
-        int index3 = 3 * i;
+        int index3 = 3 * (i + thread_idx);
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-        float  rad = cuConstRendererParams.radius[i];
-        circles[i] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+        float  rad = cuConstRendererParams.radius[(i + thread_idx)];
+        circles[(i + thread_idx)] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
 
         __syncthreads();
 
