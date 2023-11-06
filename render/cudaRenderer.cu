@@ -679,6 +679,8 @@ __global__ void kernelSharedMem() {
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+        // size of the exclusive scan we will be doing
+        int sz = std::min(cuConstRendererParams.numCircles-i-thread_idx, BLOCKSIZE);
         // bound circles, creating binary array
         int index3 = 3 * i;
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
@@ -688,19 +690,19 @@ __global__ void kernelSharedMem() {
         __syncthreads();
 
         // scan binary circles array
-        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
+        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, sz);
 
         __syncthreads();
         printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
-        if (thread_idx < BLOCKSIZE - 1) {
+        if (thread_idx < sz-1) {
             if (circles[thread_idx] < circles[thread_idx + 1]) {
                 circleInds[circles[thread_idx]] = thread_idx + offset;
             }
         } 
         if (thread_idx == 0) {
-            numCircles = circles[BLOCKSIZE-1];
+            numCircles = circles[sz-1];
             printf("numCircles: %d\n", numCircles);
         }
 
