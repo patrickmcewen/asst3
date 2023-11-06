@@ -918,7 +918,7 @@ CudaRenderer::render() {
     printf("time for bounding circles: %f\n", end - start);
     dim3 blockDimFlags(256, 1);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimFlags.x - 1) / blockDimFlags.x);
-    kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
+    kernelCreateFlags<<<gridDimFlags, blockDimFlags>>>(flags);
 
     cudaCheckError(cudaDeviceSynchronize());
 
