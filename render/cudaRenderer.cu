@@ -702,6 +702,9 @@ __global__ void kernelSharedMem() {
         sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
 
         __syncthreads();
+        if (thread_idx == 0 && x == 0 && y == 0) {
+            printf("done with exclusive scan\n");
+        }
         //printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
@@ -715,6 +718,9 @@ __global__ void kernelSharedMem() {
         }
 
         __syncthreads();
+        if (thread_idx == 0 && x == 0 && y == 0) {
+            printf("done with index gathering\n");
+        }
 
         for (int j = 0; j < numCircles; j++) {
             //printf("rendering at %d and %d\n", x, y);
