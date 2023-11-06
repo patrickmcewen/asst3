@@ -609,7 +609,7 @@ __global__ void kernelCreateFlags(int* flags) {
     if (index >= cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y) {
         return;
     }
-    flags[index * cuConstRendererParams.pow2Circles] = 1;
+    flags[index * cuConstRendererParams.pow2Circles] = index != 0;
     for (int i = 1; i < cuConstRendererParams.pow2Circles; i++) {
         flags[index * cuConstRendererParams.pow2Circles + i] = 0;
     }
