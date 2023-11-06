@@ -544,13 +544,13 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y) {
         return;
     }
-    float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
-    float boxR = ((float)(x+1) * (cuConstRendererParams.blockDim_x)) / (float)cuConstRendererParams.imageWidth;
-    float boxB = ((float)y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
-    float boxT = ((float)(y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
-    int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
+    float boxL = ((float)blockIdx.x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
+    float boxR = ((float)(blockIdx.x+1) * (cuConstRendererParams.blockDim_x)) / (float)cuConstRendererParams.imageWidth;
+    float boxB = ((float)blockIdx.y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
+    float boxT = ((float)(blockIdx.y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
+    int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
 
-    int thread_ind = blockIdx.y * blockDim.x + blockIdx.x;
+    int thread_ind = threadIdx.y * blockDim.x + threadIdx.x;
 
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int circle_ind = i + thread_ind;
