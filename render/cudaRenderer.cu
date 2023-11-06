@@ -886,6 +886,8 @@ CudaRenderer::render() {
 
     start = CycleTimer::currentSeconds();
 
+    printf("about to start circle bounding\n");
+
     kernelBoundCircles<<<gridDimBound, blockDimBound>>>(circles_per_block);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
