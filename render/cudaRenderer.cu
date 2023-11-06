@@ -893,7 +893,7 @@ CudaRenderer::render() {
     cudaCheckError(cudaDeviceSynchronize());
     double end_nomem = CycleTimer::currentSeconds();
     printf("time for exclusive scan without memcpy: %f\n", end_nomem- start_nomem);
-    cudaMemcpy(circles_per_block, circles_per_block_host, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyHostToDevice);
+    //cudaMemcpy(circles_per_block, circles_per_block_host, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyHostToDevice);
 
     end = CycleTimer::currentSeconds();
     printf("time for exclusive scan: %f\n", end - start);
