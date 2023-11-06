@@ -923,17 +923,14 @@ CudaRenderer::render() {
     printf("about to start circle bounding\n");
 
     kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
-
-    cudaCheckError(cudaDeviceSynchronize());
-
-    end = CycleTimer::currentSeconds();
-    printf("time for bounding circles: %f\n", end - start);
-
     kernelCreateFlags<<<gridDim, blockDim>>>(flags);
     cudaCheckError(cudaDeviceSynchronize());
     thrust::device_ptr<int> flags_ptr(flags);
     thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
     cudaCheckError(cudaDeviceSynchronize());
+
+    end = CycleTimer::currentSeconds();
+    printf("time for bounding circles: %f\n", end - start);
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
