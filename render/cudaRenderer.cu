@@ -539,30 +539,32 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z);
+    //int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z);
     //printf("circle_ind: %d\n", circle_ind);
 
-    if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y || circle_ind >= cuConstRendererParams.numCircles) {
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight || circle_ind >= cuConstRendererParams.numCircles) {
         return;
     }
-    float boxL = x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    if (threadIdx.x != 0 || threadIdx.y != 0) return;
+    float boxL = blockIdx.x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
-    float boxB = y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-    int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
+    int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
+    
     
     //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
-    //for (int i = circle_ind; i < end_val; i++) {
-        int index3 = 3 * circle_ind;
+    for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
+        int index3 = 3 * i;
         // read position and radius
         //printf("getting p and rad\n");
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-        float  rad = cuConstRendererParams.radius[circle_ind];
+        float  rad = cuConstRendererParams.radius[i];
         //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
         //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
-        circles_per_block_start[circle_ind] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-    //}
+        circles_per_block_start[i] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+    }
 
 
     /*int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -873,6 +875,9 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
+    dim3 blockDim(params.blockDim_x, params.blockDim_y);
+    dim3 gridDim(params.gridDim_x, params.gridDim_y);
+
     double start = CycleTimer::currentSeconds();
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
@@ -892,7 +897,7 @@ CudaRenderer::render() {
 
     printf("about to start circle bounding\n");
 
-    kernelBoundCircles<<<gridDimBound, blockDimBound>>>(circles_per_block);
+    kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
 
@@ -987,8 +992,6 @@ CudaRenderer::render() {
 
 
     // pixel parallel only
-    dim3 blockDim(params.blockDim_x, params.blockDim_y);
-    dim3 gridDim(params.gridDim_x, params.gridDim_y);
     //printf("blockDims: %d %d, gridDims: %d %d\n", blockDim.x, blockDim.y, gridDim.x, gridDim.y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
