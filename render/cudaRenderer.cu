@@ -885,7 +885,7 @@ CudaRenderer::render() {
             thrust::device_ptr<int> circles_ptr(circles_per_block_start);
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
             //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
-            thrust::exclusive_scan(thrust::device, device_ptr, device_ptr + params.pow2Circles, device_ptr);
+            thrust::exclusive_scan(thrust::device, circles_ptr, circles_ptr + params.pow2Circles, circles_ptr);
         }
         //printf("\n");
     }
