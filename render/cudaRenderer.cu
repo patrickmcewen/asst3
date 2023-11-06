@@ -554,6 +554,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
 
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int circle_ind = i + thread_ind;
+        printf("circle_ind: %d\n", circle_ind);
         int index3 = 3 * circle_ind;
         // read position and radius
         //printf("getting p and rad\n");
