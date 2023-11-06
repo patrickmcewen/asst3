@@ -970,7 +970,7 @@ CudaRenderer::render() {
     printf("time for get repeats final: %f\n", end - start);
 
 
-    circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
+    /*circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
     circles_per_block_start = print_data2 + circles_per_block_offset;
     printf("printing circles for specific block\n");
     for (int i = 0; i < params.numCircles; i++) {
@@ -1001,6 +1001,5 @@ CudaRenderer::render() {
     cudaFree(circles_per_block);
     cudaFree(circles_per_block_final);
     cudaFree(flags);
-    free(circles_per_block_host);
 }
 
