@@ -731,7 +731,7 @@ __global__ void kernelSharedMem() {
             renderPixel(x, y, circleInds[j]);
         }
 
-        offset += numCircles;
+        offset += BLOCKSIZE-1;
         if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
         }
