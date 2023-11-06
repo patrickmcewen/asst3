@@ -545,17 +545,16 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
     }
-    if (threadIdx.x != 0 || threadIdx.y != 0) return;
     float boxL = blockIdx.x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
     
-    
+    thread_idx = threadIdx.y * blockDim.x + threadIdx.x
     //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
-    for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
+    for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int index3 = 3 * i;
         // read position and radius
         //printf("getting p and rad\n");
