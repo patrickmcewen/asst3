@@ -691,7 +691,7 @@ __global__ void kernelSharedMem() {
         sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
 
         __syncthreads();
-        printf("thread_index: %d, result: %d", thread_idx, circles[thread_idx]);
+        printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
         if (thread_idx < BLOCKSIZE - 1) {
