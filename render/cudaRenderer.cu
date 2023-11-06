@@ -551,7 +551,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     float boxT = ((float)(y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
     
-    int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
+    //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
     //for (int i = circle_ind; i < end_val; i++) {
         int index3 = 3 * circle_ind;
@@ -892,7 +892,7 @@ CudaRenderer::render() {
 
     printf("about to start circle bounding\n");
 
-    kernelBoundCircles<<<blockDimBound, gridDimBound>>>(circles_per_block);
+    kernelBoundCircles<<<gridDimBound, blockDimBound>>>(circles_per_block);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
 
