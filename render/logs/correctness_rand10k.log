@@ -12,22 +12,14 @@ Device 0: Tesla T4
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Dumping frames to output_xxx.ppm
-time to alloc starting mem: 0.000547
-time for bounding circles: 0.000368
-time to create flags: 0.000038
-time to scan flags: 0.000723
-time for exclusive scan: 0.000892
-time for get total pairs: 0.000018
-time for get repeats final: 0.000627
-time to render pixels: 0.002154
 Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1249 ms
-Advance:  0.0012 ms
-Render:   7.7961 ms
-Total:    7.9222 ms
-File IO:  84.4609 ms
+Clear:    0.1303 ms
+Advance:  0.0013 ms
+Render:   2.5930 ms
+Total:    2.7247 ms
+File IO:  84.2113 ms
 
-Overall:  0.5880 sec (note units are seconds)
+Overall:  0.5641 sec (note units are seconds)

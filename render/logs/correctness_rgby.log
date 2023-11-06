@@ -16,10 +16,10 @@ Copying image data from device
 Wrote image file output_0000.ppm
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1265 ms
-Advance:  0.0011 ms
-Render:   0.1005 ms
-Total:    0.2281 ms
-File IO:  82.2724 ms
+Clear:    0.1350 ms
+Advance:  0.0010 ms
+Render:   0.1394 ms
+Total:    0.2754 ms
+File IO:  82.3170 ms
 
-Overall:  0.1058 sec (note units are seconds)
+Overall:  0.1039 sec (note units are seconds)
