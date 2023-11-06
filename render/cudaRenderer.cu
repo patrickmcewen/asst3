@@ -679,7 +679,7 @@ __global__ void kernelSharedMem() {
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
-        if (thread_idx == 0) {
+        if (thread_idx == 0 && x == 0 && y == 0) {
             printf("i: %d, numcircles: %d", i, cuConstRendererParams.numCircles);
         }
         // size of the exclusive scan we will be doing
@@ -723,7 +723,7 @@ __global__ void kernelSharedMem() {
         offset += numCircles;
 
         __syncthreads();
-        if (thread_idx == 0) {
+        if (thread_idx == 0 && x == 0 && y == 0) {
             printf("looping back around\n");
         }
     }
