@@ -678,7 +678,7 @@ __global__ void kernelSharedMem() {
 
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+    for (int i = 0; i < cuConstRendererParams.numCircles - thread_idx; i+= BLOCKSIZE-1) {
         // size of the exclusive scan we will be doing
         int sz = BLOCKSIZE;
         if (sz > cuConstRendererParams.numCircles-i) {
