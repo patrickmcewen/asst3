@@ -713,9 +713,7 @@ __global__ void kernelSharedMem() {
         __syncthreads();
 
         if (thread_idx < numCircles) {
-            if (x == 389 and y == 205) {
-                printf("rendering\n");
-            }
+            printf("rendering at %d and %d\n", x, y);
             renderPixel(x, y, circleInds[thread_idx]);
         }
 
