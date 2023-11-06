@@ -893,8 +893,7 @@ CudaRenderer::render() {
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
 
     double start = CycleTimer::currentSeconds();
-    dim3 blockDimCircles(256, 1);
-    dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
+
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
     int* flags = nullptr;
@@ -904,18 +903,11 @@ CudaRenderer::render() {
     double end = CycleTimer::currentSeconds();
     printf("time to alloc starting mem: %f\n", end - start);
 
-    dim3 blockDimBound(2, 2, 64);
-    dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, (params.numCircles + (blockDimBound.z) - 1) / (blockDimBound.z));
-
     start = CycleTimer::currentSeconds();
 
     printf("about to start circle bounding\n");
 
     kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
-    dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
-    kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
-
-    cudaCheckError(cudaDeviceSynchronize());
 
     thrust::device_ptr<int> flags_ptr(flags);
     thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
@@ -924,6 +916,11 @@ CudaRenderer::render() {
 
     end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
+    dim3 blockDimFlags(256, 1);
+    dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimFlags.x - 1) / blockDimFlags.x);
+    kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
+
+    cudaCheckError(cudaDeviceSynchronize());
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
