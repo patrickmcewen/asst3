@@ -604,6 +604,17 @@ __global__ void get_total_pairs(int* input, int length, int* total_pairs) {
     total_pairs_start[0] = input_start[length-1];
 }
 
+__global__ void create_flags(int* flags) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y) {
+        return;
+    }
+    flags[index * cuConstRendererParams.pow2Circles] = 1;
+    for (int i = 1; i < cuConstRendererParams.pow2Circles; i++) {
+        flags[index * cuConstRendererParams.pow2Circles + i] = 0;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -839,10 +850,10 @@ CudaRenderer::render() {
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
     int* circles_per_block = nullptr; // flattened 2d array
     int* circles_per_block_final = nullptr;
-    //int* flags = nullptr;
+    int* flags = nullptr;
     cudaMalloc(&circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMalloc(&circles_per_block_final, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
-    //cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMalloc(&flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     int* circles_per_block_host = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     double end = CycleTimer::currentSeconds();
     printf("time to alloc starting mem: %f\n", end - start);
@@ -850,8 +861,18 @@ CudaRenderer::render() {
     start = CycleTimer::currentSeconds();
 
     kernelBoundCircles<<<gridDimCircles, blockDimCircles>>>(circles_per_block);
+    dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
+    kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
 
     cudaCheckError(cudaDeviceSynchronize());
+
+    int* flags_print = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    cudaMemcpy(flags_print, flags, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+
+    for (int i = 0; i < params.pow2Circles * 2; i++) {
+        printf("%d ", flags_print[i]);
+    }
+    printf("\n");
 
     end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
@@ -873,6 +894,7 @@ CudaRenderer::render() {
     double start_nomem = CycleTimer::currentSeconds();
     //thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //launch exclusive scans for each block
+    thrust::
     for (int x = 0; x < params.gridDim_x; x++) {
         for (int y = 0; y < params.gridDim_y; y++) {
             //printf("x: %d, y: %d\n", x, y);
