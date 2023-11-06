@@ -931,7 +931,7 @@ CudaRenderer::render() {
     end = CycleTimer::currentSeconds();
     printf("time for exclusive scan: %f\n", end - start);
 
-    /*int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    int* print_data = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
 
     circles_per_block_offset = (params.size_of_one_row * yy) + (params.size_of_one_block * xx);
@@ -940,7 +940,7 @@ CudaRenderer::render() {
     for (int i = 0; i < params.numCircles; i++) {
         printf("%d ", circles_per_block_start[i]);
     }
-    printf("\n");*/
+    printf("\n");
 
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
