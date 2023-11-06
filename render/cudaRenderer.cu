@@ -539,7 +539,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z) * 8;
+    int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z);
     //printf("circle_ind: %d\n", circle_ind);
 
     if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y || circle_ind >= cuConstRendererParams.numCircles) {
@@ -551,18 +551,18 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
     
-    int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
+    //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
-    for (int i = circle_ind; i < end_val; i++) {
-        int index3 = 3 * i;
+    //for (int i = circle_ind; i < end_val; i++) {
+        int index3 = 3 * circle_ind;
         // read position and radius
         //printf("getting p and rad\n");
         float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-        float  rad = cuConstRendererParams.radius[i];
+        float  rad = cuConstRendererParams.radius[circle_ind];
         //printf("accessing %d index vs size of circles_per_block: %d\n", circles_per_block_index, cuConstRendererParams.numCircles * cuConstRendererParams.gridDim_x * cuConstRendererParams.gridDim_y);
         //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
-        circles_per_block_start[i] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
-    }
+        circles_per_block_start[circle_ind] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+    //}
 
 
     /*int circle_index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -886,7 +886,7 @@ CudaRenderer::render() {
     printf("time to alloc starting mem: %f\n", end - start);
 
     dim3 blockDimBound(2, 2, 64);
-    dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, (params.numCircles + (blockDimBound.z * 8) - 1) / (blockDimBound.z * 8));
+    dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, (params.numCircles + (blockDimBound.z) - 1) / (blockDimBound.z));
 
     start = CycleTimer::currentSeconds();
 
