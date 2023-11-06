@@ -551,7 +551,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
 
     int thread_ind = threadIdx.y * blockDim.x + threadIdx.x;
-    printf("thread_ind: %d\n", thread_ind);
+    //printf("thread_ind: %d\n", thread_ind);
 
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int circle_ind = i + thread_ind;
