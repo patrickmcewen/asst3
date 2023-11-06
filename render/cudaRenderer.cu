@@ -530,8 +530,6 @@ __global__ void kernelSharedMem() {
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
         } */
-
-        __syncthreads();
         /*if (thread_idx == 0 && x == 0 && y == 0) {
             printf("looping back around\n");
         }*/
@@ -665,14 +663,6 @@ CudaRenderer::setup() {
 
     params.gridDim_x = (params.imageWidth + params.blockDim_x - 1) / params.blockDim_x;
     params.gridDim_y =  (params.imageHeight + params.blockDim_y - 1) / params.blockDim_y;
-
-    params.pow2Circles = nextPow2(params.numCircles);
-    if (params.pow2Circles == params.numCircles) {
-        params.pow2Circles <<= 1;
-        //printf("new circle numbers: %d\n", params.pow2Circles);
-    }
-    params.size_of_one_row = params.pow2Circles * params.gridDim_x;
-    params.size_of_one_block = params.pow2Circles;
     
 
     cudaMemcpyToSymbol(cuConstRendererParams, &params, sizeof(GlobalConstants));
