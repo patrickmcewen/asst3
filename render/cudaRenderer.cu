@@ -680,9 +680,9 @@ __global__ void kernelSharedMem() {
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("i: %d, numcircles: %d\n", i, cuConstRendererParams.numCircles);
-        }
+        } */
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
         if (circle_ind >= cuConstRendererParams.numCircles) {
@@ -695,18 +695,18 @@ __global__ void kernelSharedMem() {
         }
 
         __syncthreads();
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with circle bounding\n");
-        }
+        } */
 
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
 
         __syncthreads();
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with exclusive scan\n");
-        }
+        } */
         //printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
@@ -719,27 +719,27 @@ __global__ void kernelSharedMem() {
         }
 
         __syncthreads();
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with index gathering\n");
             printf("numCircles: %d\n", numCircles);
-        }
+        } */
 
         for (int j = 0; j < numCircles; j++) {
-            if (thread_idx == 0 && x == 0 && y == 0) {
+            /* if (thread_idx == 0 && x == 0 && y == 0) {
                 printf("rendering at 0 0, circle index %d\n", circleInds[j]);
-            }
+            } */
             renderPixel(x, y, circleInds[j]);
         }
 
         offset += BLOCKSIZE-1;
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
-        }
+        } */
 
         __syncthreads();
-        if (thread_idx == 0 && x == 0 && y == 0) {
+        /*if (thread_idx == 0 && x == 0 && y == 0) {
             printf("looping back around\n");
-        }
+        }*/
     }
 }
 
