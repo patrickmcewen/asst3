@@ -882,7 +882,7 @@ CudaRenderer::render() {
             //cudaMalloc(&prefixSumScratch, sizeof(uint) * params.pow2Circles * 2);
             int circles_per_block_offset = (params.size_of_one_row * y) + (params.size_of_one_block * x);
             int* circles_per_block_start = circles_per_block + circles_per_block_offset;
-            thrust::device_ptr<int> circles_ptr(circles_per_block_start)
+            thrust::device_ptr<int> circles_ptr(circles_per_block_start);
             //exclusive_scan(circles_per_block_start, params.pow2Circles, circles_per_block_start);
             //kernelExclusiveScan<<<gridDimCircles, blockDimCircles>>>(circles_per_block_start, x, y);
             thrust::exclusive_scan(thrust::device, device_ptr, device_ptr + params.pow2Circles, device_ptr);
