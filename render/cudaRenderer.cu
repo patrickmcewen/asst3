@@ -666,17 +666,17 @@ __global__ void kernelSharedMem() {
         return;
     }
     int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
-    __shared__ int circles[BLOCKSIZE];
-    __shared__ int circleInds[BLOCKSIZE];
-    __shared__ int sScratch[BLOCKSIZE * 2];
-    __shared__ int numCircles;
+    __shared__ uint circles[BLOCKSIZE];
+    __shared__ uint circleInds[BLOCKSIZE];
+    __shared__ uint sScratch[BLOCKSIZE * 2];
+    __shared__ uint numCircles;
 
-    __shared__ float boxL = blockIdx.x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
-    __shared__ float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
-    __shared__ float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-    __shared__ float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    float boxL = blockIdx.x * static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
 
-    __shared__ int offset = 0;
+    int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         // bound circles, creating binary array
