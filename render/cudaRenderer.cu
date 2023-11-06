@@ -71,14 +71,14 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
-#define BLOCKSIZE 256
+#define BLOCKSIZE 1024
 #define SCAN_BLOCK_DIM   BLOCKSIZE  // needed by sharedMemExclusiveScan implementation
 #include "noiseCuda.cu_inl"
 #include "lookupColor.cu_inl"
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
 
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 1024
 
 #define DEBUG
 
@@ -493,6 +493,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
     }
+
 
     int total_pairs_offset = (blockIdx.y * cuConstRendererParams.gridDim_x) + blockIdx.x;
     int circles_per_block_offset = (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x);
