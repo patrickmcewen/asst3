@@ -869,7 +869,7 @@ CudaRenderer::render() {
     printf("\n");*/
 
     start = CycleTimer::currentSeconds();
-    cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
+    //cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
     double start_nomem = CycleTimer::currentSeconds();
     //thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
     //launch exclusive scans for each block
