@@ -707,7 +707,7 @@ __global__ void kernelSharedMem() {
             }
         } else {
             numCircles = circles[BLOCKSIZE-1];
-            printf("numCircles: %d\n", numCircles);
+            //printf("numCircles: %d\n", numCircles);
         }
 
         __syncthreads();
