@@ -539,7 +539,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int circle_ind = blockIdx.z;
+    int circle_ind = threadIdx.z;
 
     if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y) {
         return;
@@ -880,8 +880,8 @@ CudaRenderer::render() {
     double end = CycleTimer::currentSeconds();
     printf("time to alloc starting mem: %f\n", end - start);
 
-    dim3 blockDimBound(16, 16);
-    dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, params.numCircles);
+    dim3 blockDimBound(1, 1, 256);
+    dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, (params.numCircles + blockDimBound.z - 1) / blockDimBound.z);
 
     start = CycleTimer::currentSeconds();
 
