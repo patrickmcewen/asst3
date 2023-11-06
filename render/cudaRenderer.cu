@@ -732,6 +732,9 @@ __global__ void kernelSharedMem() {
         }
 
         offset += numCircles;
+        if (thread_idx == 0 && x == 0 && y == 0) {
+            printf("offset: %d\n", offset);
+        }
 
         __syncthreads();
         if (thread_idx == 0 && x == 0 && y == 0) {
