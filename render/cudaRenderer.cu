@@ -527,6 +527,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
     }
 }
 
+// for benchmarks with small amounts of circles, no need to take extra steps. Just loop through all circles
 __global__ void kernelRenderPixelsAllParallel() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -866,7 +867,7 @@ CudaRenderer::render() {
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
 
-    if (params.numCircles < 5) {
+    if (params.numCircles < 100) {
         kernelRenderPixelsAllParallel<<<gridDim, blockDim>>>();
         cudaDeviceSynchronize();
         return;
