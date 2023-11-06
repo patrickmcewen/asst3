@@ -720,6 +720,9 @@ __global__ void kernelSharedMem() {
         offset += numCircles;
 
         __syncthreads();
+        if (thread_idx == 0) {
+            printf("looping back around\n");
+        }
     }
 }
 
