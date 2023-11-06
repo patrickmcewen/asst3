@@ -542,7 +542,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     //int circle_ind = (blockIdx.z * blockDim.z + threadIdx.z);
     //printf("circle_ind: %d\n", circle_ind);
 
-    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight || circle_ind >= cuConstRendererParams.numCircles) {
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
     }
     if (threadIdx.x != 0 || threadIdx.y != 0) return;
