@@ -539,7 +539,7 @@ __global__ void kernelRenderPixels(int* circles_per_block_final, int* total_pair
 __global__ void kernelBoundCircles(int* circles_per_block) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    //printf("circle_ind: %d\n", circle_ind);
+    printf("circle_ind: %d\n", circle_ind);
 
     if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y) {
         return;
@@ -873,6 +873,9 @@ CudaRenderer::render() {
     kernelRenderCircles<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();*/
 
+    dim3 blockDim(params.blockDim_x, params.blockDim_y);
+    dim3 gridDim(params.gridDim_x, params.gridDim_y);
+
     double start = CycleTimer::currentSeconds();
     dim3 blockDimCircles(256, 1);
     dim3 gridDimCircles((params.numCircles + blockDimCircles.x - 1) / blockDimCircles.x);
@@ -892,7 +895,7 @@ CudaRenderer::render() {
 
     printf("about to start circle bounding\n");
 
-    kernelBoundCircles<<<gridDimBound, blockDimBound>>>(circles_per_block);
+    kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
     dim3 gridDimFlags((params.gridDim_x * params.gridDim_y + blockDimCircles.x - 1) / blockDimCircles.x);
     kernelCreateFlags<<<gridDimFlags, blockDimCircles>>>(flags);
 
@@ -987,8 +990,6 @@ CudaRenderer::render() {
 
 
     // pixel parallel only
-    dim3 blockDim(params.blockDim_x, params.blockDim_y);
-    dim3 gridDim(params.gridDim_x, params.gridDim_y);
     //printf("blockDims: %d %d, gridDims: %d %d\n", blockDim.x, blockDim.y, gridDim.x, gridDim.y);
     //printf("imageWidth: %d, height: %d\n", params.imageWidth, params.imageHeight);
     //printf("grid dims are x- %d and y- %d\n", gridDim.x, gridDim.y);
