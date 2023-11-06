@@ -551,7 +551,7 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * blockIdx.y) + (cuConstRendererParams.size_of_one_block * blockIdx.x); 
     
-    thread_idx = threadIdx.y * blockDim.x + threadIdx.x
+    int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
     //int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
 
     for (int i = thread_idx; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
