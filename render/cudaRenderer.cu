@@ -919,17 +919,26 @@ CudaRenderer::render() {
 
     start = CycleTimer::currentSeconds();
 
-    printf("about to start circle bounding\n");
-
-    kernelCreateFlags<<<gridDim, blockDim>>>(flags);
-    cudaCheckError(cudaDeviceSynchronize());
     kernelBoundCircles<<<gridDim, blockDim>>>(circles_per_block);
-    thrust::device_ptr<int> flags_ptr(flags);
-    thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
     cudaCheckError(cudaDeviceSynchronize());
 
     end = CycleTimer::currentSeconds();
     printf("time for bounding circles: %f\n", end - start);
+
+    start = CycleTimer::currentSeconds();
+
+    kernelCreateFlags<<<gridDim, blockDim>>>(flags);
+    cudaCheckError(cudaDeviceSynchronize());
+
+    end = CycleTimer::currentSeconds();
+    printf("time to create flags: %f\n", end - start);
+
+    start = CycleTimer::currentSeconds();
+    thrust::device_ptr<int> flags_ptr(flags);
+    thrust::inclusive_scan(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, flags_ptr);
+    cudaCheckError(cudaDeviceSynchronize());
+    end = CycleTimer::currentSeconds();
+    printf("time to scan flags: %f\n", end - start);
 
     /*int* print_data_bound = (int*)malloc(sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y);
     cudaMemcpy(print_data_bound, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
@@ -944,8 +953,7 @@ CudaRenderer::render() {
     printf("\n");*/
 
     start = CycleTimer::currentSeconds();
-    //cudaMemcpy(circles_per_block_host, circles_per_block, sizeof(int) * params.pow2Circles * params.gridDim_x * params.gridDim_y, cudaMemcpyDeviceToHost);
-    //thrust::device_vector<int> cvec(circles_per_block, circles_per_block + params.pow2Circles * params.gridDim_x * params.gridDim_y);
+    
     //launch exclusive scans for each block
     thrust::device_ptr<int> circle_ptr(circles_per_block);
     thrust::exclusive_scan_by_key(thrust::device, flags_ptr, flags_ptr + params.pow2Circles * params.gridDim_x * params.gridDim_y, circle_ptr, circle_ptr);
@@ -970,7 +978,7 @@ CudaRenderer::render() {
     int* total_pairs = nullptr;
     cudaMalloc(&total_pairs, sizeof(int) * params.gridDim_x * params.gridDim_y);
 
-
+    start = CycleTimer::currentSeconds();
     dim3 blockDimPairs(1, 1);
     dim3 gridDimPairs(params.gridDim_x, params.gridDim_y);
     get_total_pairs<<<gridDimPairs, blockDimPairs>>>(circles_per_block, params.pow2Circles, total_pairs);
@@ -983,6 +991,8 @@ CudaRenderer::render() {
     }*/
 
     cudaCheckError(cudaDeviceSynchronize());
+    end = CycleTimer::currentSeconds();
+    printf("time for get total pairs: %f\n", end - start);
 
     start = CycleTimer::currentSeconds();
 
