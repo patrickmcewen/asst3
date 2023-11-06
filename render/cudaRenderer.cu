@@ -667,6 +667,7 @@ __global__ void kernelSharedMem() {
     }
     int thread_idx = threadIdx.y * blockDim.x + threadIdx.x;
     __shared__ uint circles[BLOCKSIZE];
+    __shared__ uint circles_scanned[BLOCKSIZE];
     __shared__ uint circleInds[BLOCKSIZE];
     __shared__ uint sScratch[BLOCKSIZE * 2];
     __shared__ uint numCircles;
@@ -699,7 +700,7 @@ __global__ void kernelSharedMem() {
         }
 
         // scan binary circles array
-        sharedMemExclusiveScan(thread_idx, circles, circles, sScratch, BLOCKSIZE);
+        sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
 
         __syncthreads();
         if (thread_idx == 0 && x == 0 && y == 0) {
@@ -709,11 +710,11 @@ __global__ void kernelSharedMem() {
 
         // get correct circle indices and total number of circles
         if (thread_idx < BLOCKSIZE-1) {
-            if (circles[thread_idx] < circles[thread_idx + 1]) {
-                circleInds[circles[thread_idx]] = thread_idx + offset;
+            if (circles_scanned[thread_idx] < circles_scanned[thread_idx + 1]) {
+                circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
             }
         } else {
-            numCircles = circles[BLOCKSIZE-1];
+            numCircles = circles_scanned[BLOCKSIZE-1];
             //printf("numCircles: %d\n", numCircles);
         }
 
