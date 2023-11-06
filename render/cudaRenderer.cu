@@ -1017,6 +1017,7 @@ CudaRenderer::render() {
     printf("y = %d (row), x = %d (column): %f, %f, %f\n", YY, XX, data->x, data->y, data->z);*/
     cudaFree(circles_per_block);
     cudaFree(circles_per_block_final);
+    cudaFree(flags);
     //cudaFree(flags);
     free(circles_per_block_host);
 }
