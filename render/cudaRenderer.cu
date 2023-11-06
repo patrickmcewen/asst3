@@ -712,9 +712,9 @@ __global__ void kernelSharedMem() {
 
         __syncthreads();
 
-        if (thread_idx < numCircles) {
-            printf("rendering at %d and %d\n", x, y);
-            renderPixel(x, y, circleInds[thread_idx]);
+        for (int i = 0; i < numCircles; i++) {
+            //printf("rendering at %d and %d\n", x, y);
+            renderPixel(x, y, circleInds[i]);
         }
 
         offset += numCircles;
