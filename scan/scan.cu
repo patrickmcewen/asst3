@@ -262,7 +262,6 @@ int find_repeats(int* device_input, int length, int* device_output) {
     return *total_pairs_host; 
 }
 
-
 //
 // cudaFindRepeats --
 //
