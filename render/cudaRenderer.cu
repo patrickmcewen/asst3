@@ -885,7 +885,7 @@ CudaRenderer::render() {
     double end = CycleTimer::currentSeconds();
     printf("time to alloc starting mem: %f\n", end - start);
 
-    dim3 blockDimBound(4, 4, 8);
+    dim3 blockDimBound(2, 2, 64);
     dim3 gridDimBound((params.gridDim_x + blockDimBound.x - 1) / blockDimBound.x, (params.gridDim_y + blockDimBound.y - 1) / blockDimBound.y, (params.numCircles + (blockDimBound.z * 8) - 1) / (blockDimBound.z * 8));
 
     start = CycleTimer::currentSeconds();
