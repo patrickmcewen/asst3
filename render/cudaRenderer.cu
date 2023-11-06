@@ -545,10 +545,10 @@ __global__ void kernelBoundCircles(int* circles_per_block) {
     if (x >= cuConstRendererParams.gridDim_x || y >= cuConstRendererParams.gridDim_y || circle_ind >= cuConstRendererParams.numCircles) {
         return;
     }
-    float boxL = ((float)x * cuConstRendererParams.blockDim_x) / (float)cuConstRendererParams.imageWidth;
-    float boxR = ((float)(x+1) * (cuConstRendererParams.blockDim_x)) / (float)cuConstRendererParams.imageWidth;
-    float boxB = ((float)y * cuConstRendererParams.blockDim_y) / (float)cuConstRendererParams.imageHeight;
-    float boxT = ((float)(y+1) * (cuConstRendererParams.blockDim_y)) / (float)cuConstRendererParams.imageHeight;
+    float boxL = ((float)x * cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    float boxR = boxL + (cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
+    float boxB = ((float)y * cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    float boxT = boxB + (cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     int* circles_per_block_start = circles_per_block + (cuConstRendererParams.size_of_one_row * y) + (cuConstRendererParams.size_of_one_block * x); 
     
     int end_val = min(circle_ind + 8, cuConstRendererParams.numCircles);
