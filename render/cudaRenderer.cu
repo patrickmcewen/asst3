@@ -401,7 +401,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
     // BEGIN SHOULD-BE-ATOMIC REGION
     // global memory read
-
+    /*
     float4 existingColor = *imagePtr;
     float4 newColor;
     newColor.x = alpha * rgb.x + oneMinusAlpha * existingColor.x;
@@ -409,14 +409,8 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     newColor.z = alpha * rgb.z + oneMinusAlpha * existingColor.z;
     newColor.w = alpha + existingColor.w;
 
-    /*if (check_pixel) {
-        printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
-        printf("rgb of current circle (index %d): %f, %f, %f\n", circleIndex, rgb.x, rgb.y, rgb.z);
-        printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
-    }*/
-
     // global memory write
-    *imagePtr = newColor;
+    *imagePtr = newColor;*/
 
     // END SHOULD-BE-ATOMIC REGION
 }
