@@ -360,13 +360,10 @@ __global__ void kernelAdvanceSnowflake() {
 __device__ __inline__ void
 shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
-    float diffX = p.x - pixelCenter.x;
-    float diffY = p.y - pixelCenter.y;
-    float pixelDist = diffX * diffX + diffY * diffY;
 
 
     // circle does not contribute to the image
-    if (pixelDist > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
+    if ((p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) * (p.y - pixelCenter.y) > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
         return;
     }
 
@@ -386,7 +383,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
         const float kCircleMaxAlpha = .5f;
         const float falloffScale = 4.f;
 
-        float normPixelDist = sqrt(pixelDist) / cuConstRendererParams.radius[circleIndex];
+        float normPixelDist = sqrt((p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) * (p.y - pixelCenter.y)) / cuConstRendererParams.radius[circleIndex];
         rgb = lookupColor(normPixelDist);
 
         float maxAlpha = .6f + .4f * (1.f-p.z);
