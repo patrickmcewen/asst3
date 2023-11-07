@@ -481,6 +481,11 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
     // END SHOULD-BE-ATOMIC REGION
 }
 
+/******************************************************
+*               Our Implementation
+******************************************************/
+
+
 // for benchmarks with small amounts of circles, no need to take extra steps. Just loop through all circles
 __global__ void kernelRenderPixelsAllParallel() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
