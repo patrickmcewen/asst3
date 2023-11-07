@@ -364,11 +364,9 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     float diffY = p.y - pixelCenter.y;
     float pixelDist = diffX * diffX + diffY * diffY;
 
-    float rad = cuConstRendererParams.radius[circleIndex];;
-    float maxDist = rad * rad;
 
     // circle does not contribute to the image
-    if (pixelDist > maxDist) {
+    if (pixelDist > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
         return;
     }
 
@@ -388,7 +386,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
         const float kCircleMaxAlpha = .5f;
         const float falloffScale = 4.f;
 
-        float normPixelDist = sqrt(pixelDist) / rad;
+        float normPixelDist = sqrt(pixelDist) / cuConstRendererParams.radius[circleIndex];
         rgb = lookupColor(normPixelDist);
 
         float maxAlpha = .6f + .4f * (1.f-p.z);
