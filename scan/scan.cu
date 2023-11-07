@@ -70,7 +70,6 @@ __global__ void zero_last_elem(int* result, int N) {
 
 void exclusive_scan(int* input, int N, int* result)
 {
-
     // CS149 TODO:
     //
     // Implement your exclusive scan implementation here.  Keep in

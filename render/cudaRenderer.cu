@@ -505,7 +505,7 @@ __global__ void kernelRenderPixelsAllParallel() {
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
-    // for all pixels in the bonding box
+    // for all pixels in the bounding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
@@ -558,7 +558,7 @@ __global__ void kernelSharedMem() {
 
         __syncthreads();
 
-        // scan binary circles array
+        // scan binary circles array to determine which circles are in this block
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
 
         // get correct circle indices and total number of circles
