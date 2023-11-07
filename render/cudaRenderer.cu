@@ -426,9 +426,6 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     // END SHOULD-BE-ATOMIC REGION
 }
 
-inline __device__ void renderPixel(int x, int y, int circle_ind) {
-}
-
 __global__ void kernelSharedMem() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -446,20 +443,28 @@ __global__ void kernelSharedMem() {
     float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-    short imageWidth = cuConstRendererParams.imageWidth;
-    short imageHeight = cuConstRendererParams.imageHeight;
+    __shared__ short imageWidth = cuConstRendererParams.imageWidth;
+    __shared__ short imageHeight = cuConstRendererParams.imageHeight;
 
-    float invWidth = 1.f / imageWidth;
-    float invHeight = 1.f / imageHeight;
+    __shared__ float invWidth;
+    __shared__ float invHeight;
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
 
-    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    __shared__ float4* imgPtr;
     // for all pixels in the bonding box
-    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
-                                        invHeight * (static_cast<float>(y) + 0.5f));
+    __shared__ float2 pixelCenterNorm;
 
     int offset = 0;
+    if (thread_idx == 0) {
+        imageWidth = cuConstRendererParams.imageWidth;
+        imageHeight = cuConstRendererParams.imageHeight;
+        invWidth = 1.f / imageWidth;
+        invHeight = 1.f / imageHeight;
+        imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+        pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                    invHeight * (static_cast<float>(y) + 0.5f));
+    }
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         /* if (thread_idx == 0 && x == 0 && y == 0) {
