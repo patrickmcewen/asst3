@@ -519,9 +519,6 @@ __global__ void kernelSharedMem() {
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
         } */
-        /*if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("looping back around\n");
-        }*/
     }
 }
 
