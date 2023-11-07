@@ -417,6 +417,10 @@ shadePixelOld(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     // END SHOULD-BE-ATOMIC REGION
 }
 
+/******************************************************
+*               Our Implementation
+******************************************************/
+
 // shadePixel -- (CUDA device code)
 //
 // given a pixel and a circle, determines the contribution to the
@@ -481,12 +485,8 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
     // END SHOULD-BE-ATOMIC REGION
 }
 
-/******************************************************
-*               Our Implementation
-******************************************************/
-
-
-// for benchmarks with small amounts of circles, no need to take extra steps. Just loop through all circles
+// On benchmarks with small amounts of circles, no need to take extra steps and have overhead. 
+// Just go through all circles.
 __global__ void kernelRenderPixelsAllParallel() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -501,18 +501,15 @@ __global__ void kernelRenderPixelsAllParallel() {
 
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
+
     // compute the bounding box of the circle. The bound is in integer
     // screen coordinates, so it's clamped to the edges of the screen.
-
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
         float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
-        /*if (check_pixel) {
-            printf("circle ind: %d\n", circle_ind);
-        }*/
         shadePixelOld(i, pixelCenterNorm, p, imgPtr);
     }
 }
@@ -582,7 +579,7 @@ __global__ void kernelSharedMem() {
 
         offset += BLOCKSIZE-1;
     }
-    // single global memory write for each pixel
+    // single global memory write for each pixel; avoid writing each time
     *imgPtr = newColor;
 }
 
