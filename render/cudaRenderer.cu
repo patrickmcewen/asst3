@@ -366,9 +366,10 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
     float rad = cuConstRendererParams.radius[circleIndex];;
     float maxDist = rad * rad;*/
+    float pixelDist = (p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) + (p.y - pixelCenter.y);
 
     // circle does not contribute to the image
-    if ((p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) + (p.y - pixelCenter.y) > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
+    if (pixelDist > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
         return;
     }
 
