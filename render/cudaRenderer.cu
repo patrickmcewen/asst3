@@ -489,7 +489,9 @@ __global__ void kernelSharedMem() {
         if (circles[thread_idx]) {
             circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
         }
-        numCircles = circles_scanned[BLOCKSIZE-1];
+        if (thread_idx == BLOCKSIZE-1) {
+            numCircles = circles_scanned[BLOCKSIZE-1];
+        }
         __syncthreads();
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with index gathering\n");
