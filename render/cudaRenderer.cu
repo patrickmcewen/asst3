@@ -510,7 +510,8 @@ __global__ void kernelSharedMem() {
             /* if (thread_idx == 0 && x == 0 && y == 0) {
                 printf("rendering at 0 0, circle index %d\n", circleInds[j]);
             } */
-            float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
+            int circle_ind = circleInds[i];
+            float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
             shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
         }
 
