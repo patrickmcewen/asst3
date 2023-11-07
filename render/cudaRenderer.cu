@@ -348,6 +348,75 @@ __global__ void kernelAdvanceSnowflake() {
     *((float3*)velocityPtr) = velocity;
 }
 
+__device__ __inline__ void
+shadePixelOld(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
+
+    float diffX = p.x - pixelCenter.x;
+    float diffY = p.y - pixelCenter.y;
+    float pixelDist = diffX * diffX + diffY * diffY;
+
+    float rad = cuConstRendererParams.radius[circleIndex];;
+    float maxDist = rad * rad;
+
+    // circle does not contribute to the image
+    if (pixelDist > maxDist) {
+        return;
+    }
+
+    float3 rgb;
+    float alpha;
+
+    // there is a non-zero contribution.  Now compute the shading value
+
+    // suggestion: This conditional is in the inner loop.  Although it
+    // will evaluate the same for all threads, there is overhead in
+    // setting up the lane masks etc to implement the conditional.  It
+    // would be wise to perform this logic outside of the loop next in
+    // kernelRenderCircles.  (If feeling good about yourself, you
+    // could use some specialized template magic).
+    if (cuConstRendererParams.sceneName == SNOWFLAKES || cuConstRendererParams.sceneName == SNOWFLAKES_SINGLE_FRAME) {
+
+        const float kCircleMaxAlpha = .5f;
+        const float falloffScale = 4.f;
+
+        float normPixelDist = sqrt(pixelDist) / rad;
+        rgb = lookupColor(normPixelDist);
+
+        float maxAlpha = .6f + .4f * (1.f-p.z);
+        maxAlpha = kCircleMaxAlpha * fmaxf(fminf(maxAlpha, 1.f), 0.f); // kCircleMaxAlpha * clamped value
+        alpha = maxAlpha * exp(-1.f * falloffScale * normPixelDist * normPixelDist);
+
+    } else {
+        // simple: each circle has an assigned color
+        int index3 = 3 * circleIndex;
+        rgb = *(float3*)&(cuConstRendererParams.color[index3]);
+        alpha = .5f;
+    }
+
+    float oneMinusAlpha = 1.f - alpha;
+
+    // BEGIN SHOULD-BE-ATOMIC REGION
+    // global memory read
+
+    float4 existingColor = *imagePtr;
+    float4 newColor;
+    newColor.x = alpha * rgb.x + oneMinusAlpha * existingColor.x;
+    newColor.y = alpha * rgb.y + oneMinusAlpha * existingColor.y;
+    newColor.z = alpha * rgb.z + oneMinusAlpha * existingColor.z;
+    newColor.w = alpha + existingColor.w;
+
+    /*if (check_pixel) {
+        printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
+        printf("rgb of current circle (index %d): %f, %f, %f\n", circleIndex, rgb.x, rgb.y, rgb.z);
+        printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
+    }*/
+
+    // global memory write
+    *imagePtr = newColor;
+
+    // END SHOULD-BE-ATOMIC REGION
+}
+
 // shadePixel -- (CUDA device code)
 //
 // given a pixel and a circle, determines the contribution to the
@@ -431,7 +500,6 @@ __global__ void kernelRenderPixelsAllParallel() {
     // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
-    float4 newColor = *imgPtr;
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
@@ -440,9 +508,8 @@ __global__ void kernelRenderPixelsAllParallel() {
         /*if (check_pixel) {
             printf("circle ind: %d\n", circle_ind);
         }*/
-        newColor = shadePixel(i, pixelCenterNorm, p, newColor);
+        shadePixelOld(i, pixelCenterNorm, p, imgPtr);
     }
-    *imgPtr = newColor;
 }
 
 __global__ void kernelSharedMem() {
