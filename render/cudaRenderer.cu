@@ -412,7 +412,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
     newColor.z = alpha * rgb.z + oneMinusAlpha * newColor.z;
     newColor.w = alpha + newColor.w;
 
-    return newColor
+    return newColor;
 
     // END SHOULD-BE-ATOMIC REGION
 }
@@ -497,7 +497,7 @@ __global__ void kernelSharedMem() {
             } */
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-            newColor = shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
+            newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
         }
 
         offset += BLOCKSIZE-1;
