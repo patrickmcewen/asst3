@@ -358,7 +358,7 @@ __global__ void kernelAdvanceSnowflake() {
 // pixel from the circle.  Update of the image is done in this
 // function.  Called by kernelRenderCircles()
 __device__ __inline__ void
-shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
+shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
 
 
 
@@ -402,10 +402,12 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     // BEGIN SHOULD-BE-ATOMIC REGION
     // global memory read
     
-    imagePtr->x = alpha * rgb.x + oneMinusAlpha * imagePtr->x;
-    imagePtr->y = alpha * rgb.y + oneMinusAlpha * imagePtr->y;
-    imagePtr->z = alpha * rgb.z + oneMinusAlpha * imagePtr->z;
-    imagePtr->w = alpha + imagePtr->w;
+    newColor.x = alpha * rgb.x + oneMinusAlpha * newColor.x;
+    newColor.y = alpha * rgb.y + oneMinusAlpha * newColor.y;
+    newColor.z = alpha * rgb.z + oneMinusAlpha * newColor.z;
+    newColor.w = alpha + newColor.w;
+
+    return newColor;
 
     // END SHOULD-BE-ATOMIC REGION
 }
@@ -434,6 +436,7 @@ __global__ void kernelSharedMem() {
     // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * cuConstRendererParams.imageWidth + x)]);
+    float4 newColor;
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
@@ -490,7 +493,7 @@ __global__ void kernelSharedMem() {
             } */
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-            shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
+            newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
         }
 
         offset += BLOCKSIZE-1;
@@ -498,6 +501,7 @@ __global__ void kernelSharedMem() {
             printf("offset: %d\n", offset);
         } */
     }
+    *imagePtr = newColor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
