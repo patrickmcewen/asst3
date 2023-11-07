@@ -360,15 +360,15 @@ __global__ void kernelAdvanceSnowflake() {
 __device__ __inline__ void
 shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
-    float diffX = p.x - pixelCenter.x;
+    /*float diffX = p.x - pixelCenter.x;
     float diffY = p.y - pixelCenter.y;
     float pixelDist = diffX * diffX + diffY * diffY;
 
     float rad = cuConstRendererParams.radius[circleIndex];;
-    float maxDist = rad * rad;
+    float maxDist = rad * rad;*/
 
     // circle does not contribute to the image
-    if (pixelDist > maxDist) {
+    if ((p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) + (p.y - pixelCenter.y) > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
         return;
     }
 
