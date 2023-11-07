@@ -445,8 +445,8 @@ __global__ void kernelSharedMem() {
                                         invHeight * (static_cast<float>(y) + 0.5f));
 
     int offset = 0;
-    // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+    // loop over all circles in batches.
+    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
         if (circle_ind >= cuConstRendererParams.numCircles) {
@@ -463,12 +463,13 @@ __global__ void kernelSharedMem() {
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
 
+        __syncthreads();
+
         // get correct circle indices and total number of circles
-        if (thread_idx < BLOCKSIZE-1) {
-            if (circles[thread_idx] == 1) {
-                circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
-            }
-        } else {
+        if (circles[thread_idx] == 1) {
+            circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
+        }
+        if (thread_idx == BLOCKSIZE - 1) {
             numCircles = circles_scanned[BLOCKSIZE-1];
         }
         __syncthreads();
@@ -479,7 +480,7 @@ __global__ void kernelSharedMem() {
             newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
         }
 
-        offset += BLOCKSIZE-1;
+        offset += BLOCKSIZE;
     }
     // single global memory write for each pixel
     *imgPtr = newColor;
