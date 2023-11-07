@@ -469,7 +469,7 @@ __global__ void kernelSharedMem() {
         if (circles[thread_idx] == 1) {
             circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
         }
-        if (thread_idx == BLOCKSIZE - 1) {
+        if (thread_idx == 0) {
             numCircles = circles_scanned[BLOCKSIZE-1];
         }
         __syncthreads();
