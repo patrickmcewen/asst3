@@ -480,7 +480,7 @@ __global__ void kernelSharedMem() {
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
 
-        __syncthreads();
+    
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with exclusive scan\n");
         } */
@@ -494,6 +494,7 @@ __global__ void kernelSharedMem() {
         } else {
             numCircles = circles_scanned[BLOCKSIZE-1];
         }
+        __syncthreads();
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with index gathering\n");
             printf("numCircles: %d\n", numCircles);
