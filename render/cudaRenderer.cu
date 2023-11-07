@@ -427,20 +427,6 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 }
 
 inline __device__ void renderPixel(int x, int y, int circle_ind) {
-    short imageWidth = cuConstRendererParams.imageWidth;
-    short imageHeight = cuConstRendererParams.imageHeight;
-
-    float invWidth = 1.f / imageWidth;
-    float invHeight = 1.f / imageHeight;
-    // compute the bounding box of the circle. The bound is in integer
-    // screen coordinates, so it's clamped to the edges of the screen.
-
-    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
-    // for all pixels in the bonding box
-    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
-                                        invHeight * (static_cast<float>(y) + 0.5f));
-    float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-    shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
 }
 
 __global__ void kernelSharedMem() {
@@ -460,6 +446,18 @@ __global__ void kernelSharedMem() {
     float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+
+    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    // for all pixels in the bonding box
+    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                        invHeight * (static_cast<float>(y) + 0.5f));
 
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
@@ -512,7 +510,8 @@ __global__ void kernelSharedMem() {
             /* if (thread_idx == 0 && x == 0 && y == 0) {
                 printf("rendering at 0 0, circle index %d\n", circleInds[j]);
             } */
-            renderPixel(x, y, circleInds[j]);
+            float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
+            shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
         }
 
         offset += BLOCKSIZE-1;
