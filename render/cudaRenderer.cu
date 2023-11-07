@@ -360,16 +360,15 @@ __global__ void kernelAdvanceSnowflake() {
 __device__ __inline__ void
 shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 
-    /*float diffX = p.x - pixelCenter.x;
+    float diffX = p.x - pixelCenter.x;
     float diffY = p.y - pixelCenter.y;
     float pixelDist = diffX * diffX + diffY * diffY;
 
     float rad = cuConstRendererParams.radius[circleIndex];;
-    float maxDist = rad * rad;*/
-    float pixelDist = (p.x - pixelCenter.x) * (p.x - pixelCenter.x) + (p.y - pixelCenter.y) + (p.y - pixelCenter.y);
+    float maxDist = rad * rad;
 
     // circle does not contribute to the image
-    if (pixelDist > cuConstRendererParams.radius[circleIndex] * cuConstRendererParams.radius[circleIndex]) {
+    if (pixelDist > maxDist) {
         return;
     }
 
@@ -389,7 +388,7 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
         const float kCircleMaxAlpha = .5f;
         const float falloffScale = 4.f;
 
-        float normPixelDist = sqrt(pixelDist) / cuConstRendererParams.radius[circleIndex];
+        float normPixelDist = sqrt(pixelDist) / rad;
         rgb = lookupColor(normPixelDist);
 
         float maxAlpha = .6f + .4f * (1.f-p.z);
@@ -480,6 +479,7 @@ __global__ void kernelSharedMem() {
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
+
    
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with exclusive scan\n");
