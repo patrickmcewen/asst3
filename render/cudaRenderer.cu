@@ -416,6 +416,39 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
     // END SHOULD-BE-ATOMIC REGION
 }
 
+// for benchmarks with small amounts of circles, no need to take extra steps. Just loop through all circles
+__global__ void kernelRenderPixelsAllParallel() {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
+
+    if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
+        return;
+    }
+    //bool check_pixel = false;
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+    // compute the bounding box of the circle. The bound is in integer
+    // screen coordinates, so it's clamped to the edges of the screen.
+
+    float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
+    float4 newColor = *imgPtr;
+    // for all pixels in the bonding box
+    float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
+                                        invHeight * (static_cast<float>(y) + 0.5f));
+    for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
+        float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
+        /*if (check_pixel) {
+            printf("circle ind: %d\n", circle_ind);
+        }*/
+        newColor = shadePixel(i, pixelCenterNorm, p, newColor);
+    }
+    *imgPtr = newColor;
+}
+
 __global__ void kernelSharedMem() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -703,7 +736,11 @@ CudaRenderer::render() {
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
 
-    kernelSharedMem<<<gridDim, blockDim>>>();
-    cudaCheckError(cudaDeviceSynchronize());
+    if (image->numCircles < 5) {
+
+    } else {
+        kernelSharedMem<<<gridDim, blockDim>>>();
+    }
+    cudaDeviceSynchronize();
 }
 
