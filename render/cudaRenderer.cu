@@ -456,7 +456,7 @@ __global__ void kernelSharedMem() {
 
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE) {
+    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("i: %d, numcircles: %d\n", i, cuConstRendererParams.numCircles);
         } */
@@ -486,10 +486,11 @@ __global__ void kernelSharedMem() {
         //printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
-        if (circles[thread_idx]) {
-            circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
-        }
-        if (thread_idx == BLOCKSIZE-1) {
+        if (thread_idx < BLOCKSIZE-1) {
+            if (circles[thread_idx] == 1) {
+                circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
+            }
+        } else {
             numCircles = circles_scanned[BLOCKSIZE-1];
         }
         __syncthreads();
@@ -507,7 +508,7 @@ __global__ void kernelSharedMem() {
             shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
         }
 
-        offset += BLOCKSIZE;
+        offset += BLOCKSIZE-1;
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
         } */
