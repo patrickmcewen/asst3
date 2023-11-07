@@ -443,8 +443,8 @@ __global__ void kernelSharedMem() {
     float boxR = boxL + static_cast<float>(cuConstRendererParams.blockDim_x) / cuConstRendererParams.imageWidth;
     float boxB = blockIdx.y * static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
     float boxT = boxB + static_cast<float>(cuConstRendererParams.blockDim_y) / cuConstRendererParams.imageHeight;
-    __shared__ short imageWidth = cuConstRendererParams.imageWidth;
-    __shared__ short imageHeight = cuConstRendererParams.imageHeight;
+    __shared__ short imageWidth;
+    __shared__ short imageHeight;
 
     __shared__ float invWidth;
     __shared__ float invHeight;
