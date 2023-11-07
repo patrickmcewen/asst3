@@ -357,7 +357,7 @@ __global__ void kernelAdvanceSnowflake() {
 // given a pixel and a circle, determines the contribution to the
 // pixel from the circle.  Update of the image is done in this
 // function.  Called by kernelRenderCircles()
-__device__ __inline__ void
+__device__ __inline__ float4
 shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
 
 
@@ -501,7 +501,7 @@ __global__ void kernelSharedMem() {
             printf("offset: %d\n", offset);
         } */
     }
-    *imagePtr = newColor;
+    *imgPtr = newColor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
