@@ -479,8 +479,7 @@ __global__ void kernelSharedMem() {
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
-
-    
+   
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("done with exclusive scan\n");
         } */
@@ -488,7 +487,7 @@ __global__ void kernelSharedMem() {
 
         // get correct circle indices and total number of circles
         if (thread_idx < BLOCKSIZE-1) {
-            if (circles_scanned[thread_idx] < circles_scanned[thread_idx + 1]) {
+            if (circles[thread_idx] == 1) {
                 circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
             }
         } else {
