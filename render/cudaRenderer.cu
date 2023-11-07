@@ -357,8 +357,8 @@ __global__ void kernelAdvanceSnowflake() {
 // given a pixel and a circle, determines the contribution to the
 // pixel from the circle.  Update of the image is done in this
 // function.  Called by kernelRenderCircles()
-__device__ __inline__ void
-shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
+__device__ __inline__ float4
+shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
 
     float diffX = p.x - pixelCenter.x;
     float diffY = p.y - pixelCenter.y;
@@ -407,21 +407,12 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
     // BEGIN SHOULD-BE-ATOMIC REGION
     // global memory read
 
-    float4 existingColor = *imagePtr;
-    float4 newColor;
-    newColor.x = alpha * rgb.x + oneMinusAlpha * existingColor.x;
-    newColor.y = alpha * rgb.y + oneMinusAlpha * existingColor.y;
-    newColor.z = alpha * rgb.z + oneMinusAlpha * existingColor.z;
-    newColor.w = alpha + existingColor.w;
+    newColor.x = alpha * rgb.x + oneMinusAlpha * newColor.x;
+    newColor.y = alpha * rgb.y + oneMinusAlpha * newColor.y;
+    newColor.z = alpha * rgb.z + oneMinusAlpha * newColor.z;
+    newColor.w = alpha + newColor.w;
 
-    /*if (check_pixel) {
-        printf("old colors: %f, %f, %f\n", existingColor.x, existingColor.y, existingColor.z);
-        printf("rgb of current circle (index %d): %f, %f, %f\n", circleIndex, rgb.x, rgb.y, rgb.z);
-        printf("new colors: %f, %f, %f\n", newColor.x, newColor.y, newColor.z);
-    }*/
-
-    // global memory write
-    *imagePtr = newColor;
+    return newColor
 
     // END SHOULD-BE-ATOMIC REGION
 }
@@ -450,6 +441,7 @@ __global__ void kernelSharedMem() {
     // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * cuConstRendererParams.imageWidth + x)]);
+    float4 newColor = make_float4(imgPtr->x, imgPtr->y, imgPtr->z, imgPtr->w);
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
@@ -505,7 +497,7 @@ __global__ void kernelSharedMem() {
             } */
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-            shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
+            newColor = shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
         }
 
         offset += BLOCKSIZE-1;
@@ -513,6 +505,7 @@ __global__ void kernelSharedMem() {
             printf("offset: %d\n", offset);
         } */
     }
+    *imgPtr = newColor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
