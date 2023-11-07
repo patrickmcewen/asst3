@@ -66,8 +66,6 @@ __constant__ float  cuConstNoise1DValueTable[256];
 #define COLOR_MAP_SIZE 5
 __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 
-#define XX 389
-#define YY 205
 
 // including parts of the CUDA code from external files to keep this
 // file simpler and to seperate code that should not be modified
@@ -78,9 +76,7 @@ __constant__ float  cuConstColorRamp[COLOR_MAP_SIZE][3];
 #include "circleBoxTest.cu_inl"
 #include "exclusiveScan.cu_inl"
 
-#define THREADS_PER_BLOCK 1024
-
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
