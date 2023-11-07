@@ -436,7 +436,7 @@ __global__ void kernelSharedMem() {
     // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * cuConstRendererParams.imageWidth + x)]);
-    float4 newColor(1, 1, 1, 1);
+    float4 newColor = make_float4(1.f, 1.f, 1.f, 1.f);
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
