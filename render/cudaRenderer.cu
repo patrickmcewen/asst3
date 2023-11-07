@@ -736,8 +736,8 @@ CudaRenderer::render() {
     dim3 blockDim(params.blockDim_x, params.blockDim_y);
     dim3 gridDim(params.gridDim_x, params.gridDim_y);
 
-    if (image->numCircles < 5) {
-
+    if (numCircles < 5) {
+        kernelRenderPixelsAllParallel<<<gridDim, blockDim>>>();
     } else {
         kernelSharedMem<<<gridDim, blockDim>>>();
     }
