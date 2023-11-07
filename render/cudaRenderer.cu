@@ -505,7 +505,7 @@ __global__ void kernelSharedMem() {
             shadePixel(circle_ind, pixelCenterNorm, p, imgPtr);
         }
 
-        offset += BLOCKSIZE-1;
+        offset += BLOCKSIZE;
         /* if (thread_idx == 0 && x == 0 && y == 0) {
             printf("offset: %d\n", offset);
         } */
