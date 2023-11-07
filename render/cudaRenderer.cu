@@ -405,7 +405,6 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
     float oneMinusAlpha = 1.f - alpha;
 
     // BEGIN SHOULD-BE-ATOMIC REGION
-    // global memory read
 
     newColor.x = alpha * rgb.x + oneMinusAlpha * newColor.x;
     newColor.y = alpha * rgb.y + oneMinusAlpha * newColor.y;
@@ -437,10 +436,9 @@ __global__ void kernelSharedMem() {
 
     float invWidth = 1.f / cuConstRendererParams.imageWidth;
     float invHeight = 1.f / cuConstRendererParams.imageHeight;
-    // compute the bounding box of the circle. The bound is in integer
-    // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * cuConstRendererParams.imageWidth + x)]);
+    // read from global memory
     float4 newColor = *imgPtr;
     // for all pixels in the bonding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
@@ -449,9 +447,6 @@ __global__ void kernelSharedMem() {
     int offset = 0;
     // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
     for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
-        /* if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("i: %d, numcircles: %d\n", i, cuConstRendererParams.numCircles);
-        } */
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
         if (circle_ind >= cuConstRendererParams.numCircles) {
@@ -464,18 +459,9 @@ __global__ void kernelSharedMem() {
         }
 
         __syncthreads();
-        /* if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("done with circle bounding\n");
-        } */
-
 
         // scan binary circles array
         sharedMemExclusiveScan(thread_idx, circles, circles_scanned, sScratch, BLOCKSIZE);
-   
-        /* if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("done with exclusive scan\n");
-        } */
-        //printf("thread_index: %d, result: %d\n", thread_idx, circles[thread_idx]);
 
         // get correct circle indices and total number of circles
         if (thread_idx < BLOCKSIZE-1) {
@@ -486,25 +472,16 @@ __global__ void kernelSharedMem() {
             numCircles = circles_scanned[BLOCKSIZE-1];
         }
         __syncthreads();
-        /* if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("done with index gathering\n");
-            printf("numCircles: %d\n", numCircles);
-        } */
 
         for (int j = 0; j < numCircles; j++) {
-            /* if (thread_idx == 0 && x == 0 && y == 0) {
-                printf("rendering at 0 0, circle index %d\n", circleInds[j]);
-            } */
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
             newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
         }
 
         offset += BLOCKSIZE-1;
-        /* if (thread_idx == 0 && x == 0 && y == 0) {
-            printf("offset: %d\n", offset);
-        } */
     }
+    // single global memory write for each pixel
     *imgPtr = newColor;
 }
 
