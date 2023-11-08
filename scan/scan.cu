@@ -14,7 +14,6 @@
 
 #define THREADS_PER_BLOCK 256
 
-int find_repeats(int* device_input, int length, int* device_output);
 
 // helper function to round an integer up to the next power of 2
 static inline int nextPow2(int n) {
@@ -28,6 +27,41 @@ static inline int nextPow2(int n) {
     return n;
 }
 
+// perform first parallel scan from input
+__global__ void
+first_upward_scan(int* input, int* result, int upper_bound) {
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t j = index * 2;
+    if (j >= (size_t) upper_bound) return;
+    result[j] = input[j];
+    if (j + 1 >= upper_bound) return;
+    result[j + 1] = input[j] + input[j + 1];
+}
+
+// perform parallel scan in place
+__global__ void
+upward_scan(int* result, int two_d, int two_dplus1, int upper_bound) {
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= (size_t) upper_bound / two_dplus1) return;
+    size_t j = index * two_dplus1;
+    result[j + two_dplus1 - 1] += result[j + two_d - 1];
+}
+
+__global__ void
+reset_last(int* result, int N) {
+    result[N - 1] = 0;
+}
+
+__global__ void
+downward_scan(int* result, int two_d, int two_dplus1, int upper_bound) {
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= (size_t) upper_bound / two_dplus1) return;
+    size_t j = index * two_dplus1;
+    int t = result[j + two_d - 1];
+    result[j + two_d - 1] = result[j + two_dplus1 - 1];
+    result[j + two_dplus1 - 1] += t;
+}
+
 // exclusive_scan --
 //
 // Implementation of an exclusive scan on global memory array `input`,
@@ -36,77 +70,62 @@ static inline int nextPow2(int n) {
 // N is the logical size of the input and output arrays, however
 // students can assume that both the start and result arrays we
 // allocated with next power-of-two sizes as described by the comments
-// in cudaScan().  This is helpful, since your parallel scan
+// in cudaScan().  This is helpful, since your parallel segmented scan
 // will likely write to memory locations beyond N, but of course not
 // greater than N rounded up to the next power of 2.
 //
 // Also, as per the comments in cudaScan(), you can implement an
 // "in-place" scan, since the timing harness makes a copy of input and
 // places it in result
-
-__global__ void upsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
-    if (index + two_dplus1 - 1 >= N) return;
-    //printf("%d ", index + two_dplus1-1);
-    result[index+two_dplus1-1] += result[index+two_d-1];
-}
-
-__global__ void downsweep_kernel(int* result, int N, int two_dplus1, int two_d) {
-    int index = two_dplus1 * (blockIdx.x * blockDim.x + threadIdx.x);
-    if (index + two_dplus1 - 1 >= N) return;
-    //printf("%d ", index + two_dplus1-1);
-    int t = result[index + two_d - 1];
-    result[index + two_d - 1] = result[index + two_dplus1 - 1];
-    result[index + two_dplus1 - 1] += t;
-
-}
-
-__global__ void zero_last_elem(int* result, int N) {
-    int index = (blockIdx.x * blockDim.x + threadIdx.x);
-    if (index == 0) {
-        result[N-1] = 0;
-    }
-}
-
 void exclusive_scan(int* input, int N, int* result)
 {
+
     // CS149 TODO:
     //
-    // Implement your exclusive scan implementation here.  Keep in
+    // Implement your exclusive scan implementation here.  Keep input
     // mind that although the arguments to this function are device
     // allocated arrays, this is a function that is running in a thread
     // on the CPU.  Your implementation will need to make multiple calls
     // to CUDA kernel functions (that you must write) to implement the
     // scan.
-    N = nextPow2(N);
-    int arrSize = sizeof(float) * N;
-    dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-    dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
 
-    cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
-    for (int two_d = 1; two_d <= N/2; two_d *= 2) {
-        int two_dplus1 = 2 * two_d;
-        int numThreads = N / two_dplus1;
-        upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
+    // change N to the rounded length
+    int rounded_length = nextPow2(N);
+
+    // perform first upward sweep that also copies values
+    const int num_threads_required = (N + 1) / 2;
+    const int first_sweep_blocks = (num_threads_required + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    first_upward_scan<<<first_sweep_blocks, THREADS_PER_BLOCK>>>(input, result, N);
+    cudaDeviceSynchronize();
+
+    // upward sweep
+    for (int two_d = 2; two_d < rounded_length / 2; two_d *= 2) {
+        const int two_dplus1 = 2 * two_d;
+        const int num_threads_required = rounded_length / two_dplus1;
+        const int num_blocks = (num_threads_required + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        upward_scan<<<num_blocks, THREADS_PER_BLOCK>>>(result, two_d, two_dplus1, rounded_length);
         cudaDeviceSynchronize();
     }
 
-    zero_last_elem<<<1, 1>>>(result, N);
+    reset_last<<<1, 1>>>(result, rounded_length);
     cudaDeviceSynchronize();
 
-    for (int two_d = N/2; two_d >= 1; two_d /= 2) {
-        int two_dplus1 = 2 * two_d;
-        int numThreads = N / two_dplus1;
-        downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
+    // downward sweep
+    for (int two_d = rounded_length/2; two_d >= 1; two_d /= 2) {
+        const int two_dplus1 = 2 * two_d;
+        const int num_threads_required = rounded_length / two_dplus1;
+        const int num_blocks = (num_threads_required + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        downward_scan<<<num_blocks, THREADS_PER_BLOCK>>>(result, two_d, two_dplus1, rounded_length);
         cudaDeviceSynchronize();
     }
 }
+
 
 //
 // cudaScan --
 //
 // This function is a timing wrapper around the student's
-// implementation of scan - it copies the input to the GPU
+// implementation of segmented scan - it copies the input to the GPU
 // and times the invocation of the exclusive_scan() function
 // above. Students should not modify it.
 double cudaScan(int* inarray, int* end, int* resultarray)
@@ -139,9 +158,6 @@ double cudaScan(int* inarray, int* end, int* resultarray)
 
     double startTime = CycleTimer::currentSeconds();
 
-    // code to test find_repeats on small inputs
-    //int result = find_repeats(device_input, N, device_result);
-    //printf("result: %d\n", result); 
     exclusive_scan(device_input, N, device_result);
 
     // Wait for completion
@@ -188,25 +204,29 @@ double cudaScanThrust(int* inarray, int* end, int* resultarray) {
 }
 
 
-__global__ void mark_repeats(int* input, int* output, int length) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < length - 1) {
-        output[index] = input[index] == input[index + 1];
-    } else if (index == length-1) {
-        output[length-1] = 0;
+// set result[i] = 1 if input at i is a repeat
+__global__ void
+set_repeat(int* input, int* result, int length) {
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    // exit if the index exceeds
+    if (index >= (size_t) length - 1) return;
+    if (input[index] == input[index + 1]) {
+        result[index] = 1;
+    } else {
+        result[index] = 0;
     }
 }
 
-__global__ void get_repeats_final(int* input, int* output, int length) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < length - 1 && (input[index] < input[index+1])) {
-        output[input[index]] = index;
-    }
+// when there is an increase from input[i] = input[i + 1]
+// then set result[input[i]] = i;
+__global__ void
+identify_index(int* input, int* result, int length) {
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    // exit if the index exceeds
+    if (index >= (size_t) length - 1) return;
+    if (input[index] != input[index + 1]) result[input[index]] = index;
 }
 
-__global__ void get_total_pairs(int* input, int length, int* total_pairs) {
-    total_pairs[0] = input[length-1];
-}
 
 // find_repeats --
 //
@@ -228,38 +248,22 @@ int find_repeats(int* device_input, int length, int* device_output) {
     // must ensure that the results of find_repeats are correct given
     // the actual array length.
 
-    int length_2 = nextPow2(length);
-    int num_flags = length_2 * sizeof(int);
-    int* flags = nullptr;
-    int* flag_scan = nullptr;
-    int* total_pairs = nullptr;
-
-    cudaMalloc(&flags, num_flags);
-    cudaMalloc(&flag_scan, num_flags);
-
-    dim3 numBlocks((int)std::ceil((double)length / THREADS_PER_BLOCK));
-    dim3 threadsPerBlock((int)std::ceil((double)length / numBlocks.x));
-
-    mark_repeats<<<numBlocks, threadsPerBlock>>>(device_input, flags, length);
+    // Create a thread for every single item in the input array
+    int num_blocks = (length + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    set_repeat<<<num_blocks, THREADS_PER_BLOCK>>>(device_input, device_output, length);
     cudaDeviceSynchronize();
 
-    exclusive_scan(flags, length, flag_scan);
+    // Use exclusive scan to find out the total number of repeated elements
+    int num_repeats = 0;
+    exclusive_scan(device_output, length, device_input);
+    // Set num_repeats to be the last value of exclusive scan result
+    cudaMemcpy(&num_repeats, device_input + length - 1, sizeof(int), cudaMemcpyDeviceToHost);
+
+    identify_index<<<num_blocks, THREADS_PER_BLOCK>>>(device_input, device_output, length);
     cudaDeviceSynchronize();
-
-    cudaMalloc(&total_pairs, sizeof(int));
-    get_total_pairs<<<1, 1>>>(flag_scan, length, total_pairs);
-    cudaDeviceSynchronize();
-
-    int* total_pairs_host = (int*)malloc(sizeof(int));
-    cudaMemcpy(total_pairs_host, total_pairs, sizeof(int), cudaMemcpyDeviceToHost);
-    get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
-    cudaDeviceSynchronize();
-
-    cudaFree(flags);
-    cudaFree(flag_scan);
-
-    return *total_pairs_host; 
+    return num_repeats;
 }
+
 
 //
 // cudaFindRepeats --
