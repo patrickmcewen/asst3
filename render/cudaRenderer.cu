@@ -539,7 +539,7 @@ __global__ void kernelSharedMem() {
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * cuConstRendererParams.imageWidth + x)]);
     // read from global memory
     float4 newColor = *imgPtr;
-    // for all pixels in the bonding box
+    // for all pixels in the bounding box
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(x) + 0.5f),
                                         invHeight * (static_cast<float>(y) + 0.5f));
 
@@ -555,7 +555,7 @@ __global__ void kernelSharedMem() {
             int index3 = 3 * circle_ind;
             float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
             float  rad = cuConstRendererParams.radius[circle_ind];
-            // check if the circle is in the current block: mark it if so
+            // check if the circle is in the current pixel in the block: mark it if so
             circles[thread_idx] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
         }
 
@@ -567,7 +567,7 @@ __global__ void kernelSharedMem() {
         // get correct circle indices and total number of circles
         if (thread_idx < BLOCKSIZE-1) {
             if (circles[thread_idx] == 1) {
-                circleInds[circles_scanned[thread_idx]] = thread_idx + offset;
+                circleInds[circles_scanned[thread_idx]] = thread_idx + offset; // pixel coordinate in the output
             }
         } else {
             numCircles = circles_scanned[BLOCKSIZE-1];
@@ -575,6 +575,7 @@ __global__ void kernelSharedMem() {
         __syncthreads();
 
         // loop up to the largest circle ID from the scan (in this block)
+        // accumulate color value in this pixel (index is circle_ind)
         for (int j = 0; j < numCircles; j++) {
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
