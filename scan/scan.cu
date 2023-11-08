@@ -80,23 +80,23 @@ void exclusive_scan(int* input, int N, int* result)
     // scan.
     N = nextPow2(N);
     int arrSize = sizeof(float) * N;
+    dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
+    dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
 
     cudaMemcpy(result, input, arrSize, cudaMemcpyDeviceToDevice);
     for (int two_d = 1; two_d <= N/2; two_d *= 2) {
         int two_dplus1 = 2 * two_d;
         int numThreads = N / two_dplus1;
-        dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-        dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
         upsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
         cudaDeviceSynchronize();
     }
+
     zero_last_elem<<<1, 1>>>(result, N);
     cudaDeviceSynchronize();
+
     for (int two_d = N/2; two_d >= 1; two_d /= 2) {
         int two_dplus1 = 2 * two_d;
         int numThreads = N / two_dplus1;
-        dim3 numBlocks((numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-        dim3 threadsPerBlock((numThreads + numBlocks.x - 1) / numBlocks.x);
         downsweep_kernel<<<numBlocks, threadsPerBlock>>>(result, N, two_dplus1, two_d);
         cudaDeviceSynchronize();
     }
