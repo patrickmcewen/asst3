@@ -514,6 +514,7 @@ __global__ void kernelRenderPixelsAllParallel() {
     }
 }
 
+// Kernel going over each block in image and shading the appropriate pixels.
 __global__ void kernelSharedMem() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -543,8 +544,9 @@ __global__ void kernelSharedMem() {
                                         invHeight * (static_cast<float>(y) + 0.5f));
 
     int offset = 0;
-    // loop over all circles. BLOCKSIZE - 1 because exclusive scan can't capture the last element.
-    for (int i = 0; i < cuConstRendererParams.numCircles; i+= BLOCKSIZE-1) {
+    // Loop over all circles. 
+    // BLOCKSIZE - 1 because exclusive scan can't capture the last element.
+    for (int i = 0; i < cuConstRendererParams.numCircles; i += (BLOCKSIZE-1)) {
         int circle_ind = i + thread_idx;
         // bound circles, creating binary array
         if (circle_ind >= cuConstRendererParams.numCircles) {
@@ -553,6 +555,7 @@ __global__ void kernelSharedMem() {
             int index3 = 3 * circle_ind;
             float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
             float  rad = cuConstRendererParams.radius[circle_ind];
+            // check if the circle is in the current block: mark it if so
             circles[thread_idx] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
         }
 
@@ -571,6 +574,7 @@ __global__ void kernelSharedMem() {
         }
         __syncthreads();
 
+        // loop up to the largest circle ID from the scan (in this block)
         for (int j = 0; j < numCircles; j++) {
             int circle_ind = circleInds[j];
             float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
