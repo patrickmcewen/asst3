@@ -576,10 +576,15 @@ __global__ void kernelSharedMem() {
 
         // loop up to the largest circle ID from the scan (in this block)
         // accumulate color value in this pixel (index is circle_ind)
-        for (int j = 0; j < numCircles; j++) {
-            int circle_ind = circleInds[j];
-            float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
-            newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
+        if (thread_idx >= numCircles) {
+            return;
+        }
+        else {
+            for (int j = 0; j < numCircles; j++) {
+                int circle_ind = circleInds[j];
+                float3 p = *(float3*)(&cuConstRendererParams.position[circle_ind*3]);
+                newColor = shadePixel(circle_ind, pixelCenterNorm, p, newColor);
+            }
         }
 
         offset += BLOCKSIZE-1;
