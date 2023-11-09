@@ -252,7 +252,7 @@ int find_repeats(int* device_input, int length, int* device_output) {
 
     int* total_pairs_host = (int*)malloc(sizeof(int));
     cudaMemcpy(total_pairs_host, total_pairs, sizeof(int), cudaMemcpyDeviceToHost);
-    // get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
+    get_repeats_final<<<numBlocks, threadsPerBlock>>>(flag_scan, device_output, length);
     cudaDeviceSynchronize();
 
     cudaFree(flags);
