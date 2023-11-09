@@ -485,19 +485,15 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4 newColor) {
 __global__ void kernelRenderPixelsAllParallel() {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    //printf("image width: %d, image height: %d\n", cuConstRendererParams.imageWidth, cuConstRendererParams.imageHeight);
 
     if (x >= cuConstRendererParams.imageWidth || y >= cuConstRendererParams.imageHeight) {
         return;
     }
-    //bool check_pixel = false;
     short imageWidth = cuConstRendererParams.imageWidth;
     short imageHeight = cuConstRendererParams.imageHeight;
 
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
-    // compute the bounding box of the circle. The bound is in integer
-    // screen coordinates, so it's clamped to the edges of the screen.
 
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (y * imageWidth + x)]);
     // for all pixels in the bonding box
@@ -505,9 +501,6 @@ __global__ void kernelRenderPixelsAllParallel() {
                                         invHeight * (static_cast<float>(y) + 0.5f));
     for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
         float3 p = *(float3*)(&cuConstRendererParams.position[i*3]);
-        /*if (check_pixel) {
-            printf("circle ind: %d\n", circle_ind);
-        }*/
         shadePixelOld(i, pixelCenterNorm, p, imgPtr);
     }
 }
@@ -551,7 +544,7 @@ __global__ void kernelSharedMem() {
             int index3 = 3 * circle_ind;
             float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
             float  rad = cuConstRendererParams.radius[circle_ind];
-            circles[thread_idx] = circleInBox(p.x, p.y, rad, boxL, boxR, boxT, boxB);
+            circles[thread_idx] = circleInBoxConservative(p.x, p.y, rad, boxL, boxR, boxT, boxB);
         }
 
         __syncthreads();
